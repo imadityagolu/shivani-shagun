@@ -1,0 +1,43 @@
+import React, { useState } from 'react';
+import { FaUserCircle } from 'react-icons/fa';
+
+function ForgetPassword() {
+  const [email, setEmail] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log('Email for password reset:', email);
+  };
+
+  return (
+    <div className="bg-gray-100 min-h-screen flex items-center justify-center">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <div className="flex justify-center mb-6">
+          <FaUserCircle className="w-12 h-12 text-rose-500" />
+        </div>
+        <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">Forget Password ?</h2>
+        <p className="text-gray-600 text-center mb-6">Enter your credential to reset your password</p>
+        <div className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email or phone"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-gray-800 placeholder-gray-400"
+          />
+          <div className="flex justify-between items-center mt-6">
+            <a href="/AdminLogin" className="text-rose-500 font-medium hover:underline">Back to Sign in</a>
+            <button
+              onClick={handleSubmit}
+              className="px-6 py-2 bg-rose-500 text-white rounded-md hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default ForgetPassword;
