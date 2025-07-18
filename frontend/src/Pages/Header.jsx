@@ -34,12 +34,12 @@ function Header() {
     <header className="bg-rose-500 shadow-md sticky top-0 z-50">
       <div className="flex items-center justify-between px-4 sm:px-8 py-3">
         {/* Logo and Name */}
-        <div className="flex items-center gap-3">
+        <Link to="/Home" className="flex items-center gap-3">
           <span className="rounded-lg shadow flex items-center justify-center">
             <img src={logo} alt="Logo" className="h-10 w-10 object-contain rounded-lg" />
           </span>
           <span className="text-white text-2xl tracking-wide drop-shadow">Shivani Shagun</span>
-        </div>
+        </Link>
         {/* Centered Categories (Desktop) */}
         <div className="hidden sm:flex flex-1 justify-center gap-3">
           <Link to='/sections/saree' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Saree</Link>

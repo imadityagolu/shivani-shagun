@@ -41,11 +41,16 @@ app.get('/api/admin/dashboard', auth('admin'), adminController.dashboard);
 app.post('/api/customer/signup', customerController.signup);
 app.post('/api/customer/login', customerController.login);
 app.get('/api/customer/profile', auth('customer'), customerController.profile);
+app.post('/api/customer/wishlist', auth('customer'), customerController.addToWishlist);
+app.post('/api/customer/cart', auth('customer'), customerController.addToCart);
+app.get('/api/customer/wishlist', auth('customer'), customerController.getWishlist);
+app.get('/api/customer/cart', auth('customer'), customerController.getCart);
 
 // Product routes
 app.post('/api/products/upload', auth('admin'), productController.uploadProductImage);
 app.post('/api/products', auth('admin'), productController.addProduct);
 app.get('/api/products', productController.getAllProducts);
+app.get('/api/products/:id', productController.getProductById);
 app.delete('/api/products/:id', auth('admin'), productController.deleteProduct);
 app.patch('/api/products/:id', auth('admin'), productController.updateProduct);
 

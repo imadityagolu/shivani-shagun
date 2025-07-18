@@ -23,6 +23,9 @@ import Saree from './Pages/sections/Saree';
 import Lehnga from './Pages/sections/Lehnga';
 import Chunni from './Pages/sections/Chunni';
 import AllProduct from './Pages/sections/AllProduct';
+import ProductDetail from './Pages/Sections/ProductDetail';
+import Wishlist from './Pages/Customer/Wishlist';
+import Cart from './Pages/Customer/Cart';
 
 const router = createBrowserRouter([
   {
@@ -86,6 +89,14 @@ const router = createBrowserRouter([
         element: <Profile/>
       },
       {
+        path: '/Wishlist',
+        element: <Wishlist/>
+      },
+      {
+        path: '/Cart',
+        element: <Cart/>
+      },
+      {
         path: '/sections/saree',
         element: <Saree/>
       },
@@ -100,6 +111,10 @@ const router = createBrowserRouter([
       {
         path: '/sections/allproduct',
         element: <AllProduct/>
+      },
+      {
+        path: '/sections/product/:id',
+        element: <ProductDetail/>
       },
       {
         path: '*',

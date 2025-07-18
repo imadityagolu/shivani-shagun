@@ -49,4 +49,58 @@ exports.login = async (req, res) => {
 
 exports.profile = (req, res) => {
   res.json({ message: 'Welcome to the customer profile!', customerId: req.user.id });
+};
+
+exports.addToWishlist = async (req, res) => {
+  try {
+    const customerId = req.user.id;
+    const { productId } = req.body;
+    if (!productId) return res.status(400).json({ message: 'Product ID required' });
+    const customer = await Customer.findById(customerId);
+    if (!customer) return res.status(404).json({ message: 'Customer not found' });
+    if (!customer.wishlist.includes(productId)) {
+      customer.wishlist.push(productId);
+      await customer.save();
+    }
+    res.json({ message: 'Added to wishlist', wishlist: customer.wishlist });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+exports.addToCart = async (req, res) => {
+  try {
+    const customerId = req.user.id;
+    const { productId } = req.body;
+    if (!productId) return res.status(400).json({ message: 'Product ID required' });
+    const customer = await Customer.findById(customerId);
+    if (!customer) return res.status(404).json({ message: 'Customer not found' });
+    if (!customer.cart.includes(productId)) {
+      customer.cart.push(productId);
+      await customer.save();
+    }
+    res.json({ message: 'Added to cart', cart: customer.cart });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+exports.getWishlist = async (req, res) => {
+  try {
+    const customer = await Customer.findById(req.user.id).populate('wishlist');
+    if (!customer) return res.status(404).json({ message: 'Customer not found' });
+    res.json(customer.wishlist);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+exports.getCart = async (req, res) => {
+  try {
+    const customer = await Customer.findById(req.user.id).populate('cart');
+    if (!customer) return res.status(404).json({ message: 'Customer not found' });
+    res.json(customer.cart);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
 }; 

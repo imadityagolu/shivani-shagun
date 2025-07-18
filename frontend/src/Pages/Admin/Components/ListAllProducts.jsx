@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { FaEdit, FaTrash } from 'react-icons/fa';
-import { FaFileCsv } from 'react-icons/fa6';
+import { FaFileCsv, FaFileExcel } from 'react-icons/fa6';
 import { toast } from 'react-toastify';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 function ListAllProducts() {
   const [products, setProducts] = useState([]);
@@ -126,6 +128,31 @@ function ListAllProducts() {
     }
   };
 
+  // XLSX download handler
+  const handleDownloadXLSX = () => {
+    if (filtered.length === 0) {
+      toast.info('No products to export.');
+      return;
+    }
+    const headers = ['Seller', 'Product', 'Description', 'Category', 'Quantity', 'Rate', 'MRP', 'Date', 'Image'];
+    const rows = filtered.map(p => [
+      p.seller || '',
+      p.product || '',
+      p.description || '',
+      p.category || '',
+      p.quantity || '',
+      p.rate || '',
+      p.mrp || '',
+      p.date || '',
+      p.image ? `${BACKEND_URL}${p.image}` : ''
+    ]);
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Products');
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    saveAs(new Blob([wbout], { type: 'application/octet-stream' }), 'products.xlsx');
+  };
+
   // CSV download handler
   const handleDownloadCSV = () => {
     if (filtered.length === 0) {
@@ -206,6 +233,14 @@ function ListAllProducts() {
           title="Download CSV"
         >
           <FaFileCsv className="w-6 h-6" />
+        </button>
+        {/* XLSX Download Icon */}
+        <button
+          onClick={handleDownloadXLSX}
+          className="ml-2 p-2 rounded-full bg-lime-100 hover:bg-lime-200 text-lime-700 flex items-center justify-center"
+          title="Download Excel"
+        >
+          <FaFileExcel className="w-6 h-6" />
         </button>
       </div>
       {loading ? (

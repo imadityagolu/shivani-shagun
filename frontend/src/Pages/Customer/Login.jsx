@@ -30,9 +30,12 @@ function Login() {
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem('token', data.token);
-        if (data.customer && data.customer.name) {
-          localStorage.setItem('customerName', data.customer.name);
-          toast.success(`Welcome, ${data.customer.name}!`);
+        if (data.customer) {
+          if (data.customer.name) localStorage.setItem('customerName', data.customer.name);
+          if (data.customer.email) localStorage.setItem('customerEmail', data.customer.email);
+          if (data.customer.mobile) localStorage.setItem('customerMobile', data.customer.mobile);
+          if (data.customer.lastLogin) localStorage.setItem('customerLastLogin', data.customer.lastLogin);
+          toast.success(`Welcome, ${data.customer.name || 'Customer'}!`);
         } else {
           toast.success('Welcome!');
         }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FaUserCircle, FaBars } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AddProduct from './Components/AddProduct';
 import ListAllProducts from './Components/ListAllProducts';
 import GenerateBill from './Components/GenerateBill';
@@ -115,6 +115,11 @@ function AdminDashboard() {
                 Show Monthly Budget
               </button>
             </li>
+            <li>
+              <Link to="/Home" className={`w-full px-4 py-2 text-left rounded-md focus:outline-none focus:ring-2 focus:ring-rose-500`}>
+                Go to Website
+              </Link>
+            </li>
           </ul>
         </div>
         {/* Sidebar for mobile (side panel) */}
@@ -149,6 +154,11 @@ function AdminDashboard() {
                   <button onClick={() => { setSelected('budget'); setSidebarOpen(false); }} className={`w-full px-4 py-2 text-left rounded-md focus:outline-none focus:ring-2 focus:ring-rose-500 ${selected === 'budget' ? 'bg-rose-200 text-rose-700 font-bold' : 'bg-rose-100 text-gray-800 hover:bg-rose-200'}`}>
                     Show Monthly Budget
                   </button>
+                </li>
+                <li>
+                  <Link to="/Home" className={`w-full px-4 py-2 text-left rounded-md focus:outline-none focus:ring-2 focus:ring-rose-500`}>
+                    Go to Website
+                  </Link>
                 </li>
               </ul>
             </div>
