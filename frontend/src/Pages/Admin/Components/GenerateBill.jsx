@@ -2,7 +2,9 @@ import React from 'react'
 
 function GenerateBill() {
   return (
-    <div>GenerateBill</div>
+    <div>
+      Generate Bill
+    </div>
   )
 }
 

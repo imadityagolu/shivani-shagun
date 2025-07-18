@@ -2,7 +2,9 @@ import React from 'react'
 
 function ShowBudget() {
   return (
-    <div>ShowBudget</div>
+    <div>
+      Show Budget
+    </div>
   )
 }
 

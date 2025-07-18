@@ -1,34 +1,60 @@
 import React, { useState } from 'react';
 import { FaUserCircle } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('');
+  const [emailOrMobile, setEmailOrMobile] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   const handleTogglePassword = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Email:', email, 'Password:', password);
+    if (!emailOrMobile || !password) {
+      toast.error('Email or mobile and password are required');
+      return;
+    }
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emailOrMobile, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('token', data.token);
+        if (data.admin && data.admin.name) {
+          localStorage.setItem('adminName', data.admin.name);
+        }
+        navigate('/AdminDashboard');
+      } else {
+        toast.error(data.message || 'Login failed');
+      }
+    } catch (err) {
+      toast.error('Server error');
+    }
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+    <div className="bg-gray-100 min-h-screen flex items-center justify-center p-1 sm:p-0">
+      <div className="bg-white p-4 sm:p-8 rounded-lg shadow-md w-full max-w-md mx-2 sm:mx-auto">
         <div className="flex justify-center mb-6">
           <FaUserCircle className="w-12 h-12 text-rose-500" />
         </div>
-        <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">Admin Signin</h2>
+        <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 text-center mb-6">Admin Signin</h2>
         <div className="space-y-4">
           <input
-            type="email"
-            placeholder="Email or phone"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            placeholder="Email or Mobile"
+            value={emailOrMobile}
+            onChange={(e) => setEmailOrMobile(e.target.value)}
             className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-gray-800 placeholder-gray-400"
           />
           <div className="relative">
@@ -57,13 +83,13 @@ function AdminLogin() {
             </button>
           </div>
           <div className="flex justify-end text-sm">
-            <Link to="/ForgetPassword" className="text-rose-500 hover:underline">Forgot password?</Link>
+            {/* <Link to="/ForgetPassword" className="text-rose-500 hover:underline">Forgot password?</Link> */}
           </div>
-          <div className="flex justify-between items-center mt-6">
-            <a href="/Home" className="text-rose-500 font-medium hover:underline">Back to Website</a>
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-2 sm:gap-0">
+            <a href="/Home" className="text-rose-500 font-medium hover:underline">Go to Website</a>
             <button
               onClick={handleSubmit}
-              className="px-6 py-2 bg-rose-500 text-white rounded-md hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              className="px-6 py-2 bg-rose-500 text-white rounded-md hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 w-full sm:w-auto"
             >
               sign in
             </button>

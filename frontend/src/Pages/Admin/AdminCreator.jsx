@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FaUserCircle } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 function AdminCreator() {
   const [name, setName] = useState('');
@@ -8,23 +9,49 @@ function AdminCreator() {
   const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   const handleTogglePassword = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Name:', name, 'Email:', email, 'Mobile:', mobile, 'Password:', password);
+    if (!name || !email || !password || !mobile) {
+      toast.error('All fields are required');
+      return;
+    }
+    if (!/^\d{10}$/.test(mobile)) {
+      toast.error('Mobile number must be exactly 10 digits');
+      return;
+    }
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, mobile })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('Admin registered successfully!');
+        navigate('/AdminLogin');
+      } else {
+        toast.error(data.message || 'Signup failed');
+      }
+    } catch (err) {
+      toast.error('Server error');
+    }
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+    <div className="bg-gray-100 min-h-screen flex items-center justify-center p-1 sm:p-0">
+      <div className="bg-white p-4 sm:p-8 rounded-lg shadow-md w-full max-w-md mx-2 sm:mx-auto">
         <div className="flex justify-center mb-6">
           <FaUserCircle className="w-12 h-12 text-rose-500" />
         </div>
-        <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">Create Account for Admin</h2>
+        <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 text-center mb-6">Create Account for Admin</h2>
         <div className="space-y-4">
           <input
             type="text"
@@ -44,7 +71,10 @@ function AdminCreator() {
             type="tel"
             placeholder="Mobile Number"
             value={mobile}
-            onChange={(e) => setMobile(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, '');
+              if (value.length <= 10) setMobile(value);
+            }}
             className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-gray-800 placeholder-gray-400"
           />
           <div className="relative">
@@ -72,11 +102,11 @@ function AdminCreator() {
               )}
             </button>
           </div>
-          <div className="flex justify-between items-center mt-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-2 sm:gap-0">
             <Link to="/AdminLogin" className="text-rose-500 font-medium hover:underline">Already have an account? Sign in</Link>
             <button
               onClick={handleSubmit}
-              className="px-6 py-2 bg-rose-500 text-white rounded-md hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              className="px-6 py-2 bg-rose-500 text-white rounded-md hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 w-full sm:w-auto"
             >
               Sign Up
             </button>
