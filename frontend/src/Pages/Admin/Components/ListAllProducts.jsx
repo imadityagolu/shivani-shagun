@@ -183,6 +183,13 @@ function ListAllProducts() {
     URL.revokeObjectURL(url);
   };
 
+  // Helper to truncate description to 5 words
+  const truncateDescription = (desc) => {
+    if (!desc) return '';
+    const words = desc.split(' ');
+    return words.length > 5 ? words.slice(0, 5).join(' ') + '...' : desc;
+  };
+
   return (
     <div className="overflow-x-auto w-full">
       <h2 className="text-2xl font-bold text-rose-500 mb-4 text-center flex items-center justify-center gap-4">

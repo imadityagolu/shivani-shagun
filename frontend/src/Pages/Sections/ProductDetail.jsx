@@ -122,17 +122,36 @@ function ProductDetail() {
                   <FaHeart className="text-lg" />
                   {inWishlist ? 'View My Wishlist' : 'Add to Wishlist'}
                 </button>
-                <button
-                  onClick={() => handleAdd('cart')}
-                  className={`bg-green-100 text-green-700 font-semibold px-5 py-2 rounded-lg shadow hover:bg-green-200 transition flex items-center gap-2 ${inCart ? 'bg-green-200 text-green-900' : ''}`}
-                >
-                  <FaShoppingCart className="text-lg" />
-                  {inCart ? 'View My Cart' : 'Add to Cart'}
-                </button>
+                {(!inCart && product.quantity > 0) ? (
+                  <button
+                    onClick={() => handleAdd('cart')}
+                    className={`bg-green-100 text-green-700 font-semibold px-5 py-2 rounded-lg shadow hover:bg-green-200 transition flex items-center gap-2`}
+                  >
+                    <FaShoppingCart className="text-lg" />
+                    Add to Cart
+                  </button>
+                ) : (inCart && product.quantity > 0) ? (
+                  <button
+                    onClick={() => navigate('/Cart')}
+                    className="bg-gray-200 text-gray-400 font-semibold px-5 py-2 rounded-lg shadow flex items-center gap-2 hover:bg-gray-300"
+                  >
+                    <FaShoppingCart className="text-lg" />
+                    In Cart
+                  </button>
+                ) : null}
               </div>
+              {(!product.quantity || product.quantity === 0) && (
+                <div className="text-red-500 font-semibold mt-2 text-base">Out of Stock</div>
+              )}
             </div>
           </div>
         ) : null}
+      </div>
+      <div className="max-w-7xl mx-auto mt-4 px-4">
+        <div className="bg-blue-50 border-l-4 border-blue-400 text-blue-700 p-4 rounded-lg shadow flex items-center gap-3">
+          <span className="font-bold">Note:</span>
+          Product can be returned within only <span className="font-bold">24 hours</span> of delivery, not after that.
+        </div>
       </div>
     </>
   );

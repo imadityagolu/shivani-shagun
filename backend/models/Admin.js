@@ -6,7 +6,13 @@ const adminSchema = new mongoose.Schema({
   password: { type: String, required: true },
   mobile: { type: String, required: true, unique: true },
   createdAt: { type: Date, default: Date.now },
-  lastLogin: { type: Date }
+  lastLogin: { type: Date },
+  notifications: [{
+    title: { type: String, required: true },
+    message: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now },
+    read: { type: Boolean, default: false }
+  }]
 });
 
 module.exports = mongoose.model('Admin', adminSchema); 

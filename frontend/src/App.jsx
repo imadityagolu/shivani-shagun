@@ -26,6 +26,7 @@ import AllProduct from './Pages/sections/AllProduct';
 import ProductDetail from './Pages/Sections/ProductDetail';
 import Wishlist from './Pages/Customer/Wishlist';
 import Cart from './Pages/Customer/Cart';
+import Order from './Pages/Customer/Order';
 
 const router = createBrowserRouter([
   {
@@ -95,6 +96,10 @@ const router = createBrowserRouter([
       {
         path: '/Cart',
         element: <Cart/>
+      },
+      {
+        path: '/Order',
+        element: <Order/>
       },
       {
         path: '/sections/saree',

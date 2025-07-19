@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
+import { FaUser, FaBoxOpen, FaAlignLeft, FaTags, FaSortNumericUp, FaRupeeSign, FaCalendarAlt, FaImage } from 'react-icons/fa';
 
 function AddProduct() {
   const [form, setForm] = useState({
@@ -202,58 +203,93 @@ function AddProduct() {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="max-w-3xl w-full mx-auto bg-white rounded-xl shadow-lg p-8 flex flex-col gap-5">
-        <h2 className="text-2xl font-bold text-rose-500 mb-2 text-center">Add Product</h2>
-        <div className="flex items-center gap-2" ref={sellerInputRef}>
-          <div className="w-full relative">
-            <input
-              name="seller"
-              value={form.seller}
-              onChange={handleChange}
-              onFocus={() => setShowSellerDropdown(true)}
-              placeholder="Seller"
-              autoComplete="off"
-              className="w-full px-5 py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm"
-              required
-            />
-            {showSellerDropdown && filteredSellers.length > 0 && (
-              <ul className="absolute z-10 bg-white border border-gray-200 rounded-lg shadow max-h-48 overflow-y-auto w-full mt-1">
-                {filteredSellers.map((s) => (
-                  <li
-                    key={s._id}
-                    className="px-4 py-2 hover:bg-rose-100 cursor-pointer"
-                    onClick={() => handleSelectSeller(s.name)}
-                  >
-                    {s.name}
-                    {s.mobile ? <span className="text-xs text-gray-400 ml-2">({s.mobile})</span> : null}
-                  </li>
-                ))}
-              </ul>
-            )}
+      <form onSubmit={handleSubmit} className="max-w-3xl w-full mx-auto bg-white/60 backdrop-blur-md rounded-2xl shadow-2xl p-6 sm:p-10 flex flex-col gap-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-rose-500 mb-2 text-center tracking-wide drop-shadow">Add Product</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Seller input with icon and add button */}
+          <div className="col-span-1 flex flex-col gap-2" ref={sellerInputRef}>
+            <label className="flex items-center gap-2 text-gray-700 font-semibold mb-1"><FaUser className="text-rose-400" /> Seller</label>
+            <div className="w-full relative flex items-center gap-2">
+              <input
+                name="seller"
+                value={form.seller}
+                onChange={handleChange}
+                onFocus={() => setShowSellerDropdown(true)}
+                placeholder="Seller"
+                autoComplete="off"
+                className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm"
+                required
+              />
+              <button type="button" onClick={() => setShowSellerPopup(true)} className="bg-rose-500 text-white rounded-full w-9 h-9 flex items-center justify-center text-xl font-bold hover:bg-rose-600 transition" title="Add Seller">+</button>
+              {showSellerDropdown && filteredSellers.length > 0 && (
+                <ul className="absolute z-10 bg-white border border-gray-200 rounded-lg shadow max-h-48 overflow-y-auto w-full mt-1">
+                  {filteredSellers.map((s) => (
+                    <li
+                      key={s._id}
+                      className="px-4 py-2 hover:bg-rose-100 cursor-pointer"
+                      onClick={() => handleSelectSeller(s.name)}
+                    >
+                      {s.name}
+                      {s.mobile ? <span className="text-xs text-gray-400 ml-2">({s.mobile})</span> : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
-          <button type="button" onClick={() => setShowSellerPopup(true)} className="bg-rose-500 text-white rounded-full w-10 h-10 flex items-center justify-center text-2xl font-bold hover:bg-rose-600 transition" title="Add Seller">+</button>
+          {/* Product Name */}
+          <div className="col-span-1 flex flex-col gap-2">
+            <label className="flex items-center gap-2 text-gray-700 font-semibold mb-1"><FaBoxOpen className="text-rose-400" /> Product</label>
+            <input name="product" value={form.product} onChange={handleChange} placeholder="Product" className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm" required />
+          </div>
+          {/* Description */}
+          <div className="col-span-1 sm:col-span-2 flex flex-col gap-2">
+            <label className="flex items-center gap-2 text-gray-700 font-semibold mb-1"><FaAlignLeft className="text-rose-400" /> Description</label>
+            <textarea name="description" value={form.description} onChange={handleChange} placeholder="Description" className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm resize-none" required />
+          </div>
+          {/* Category */}
+          <div className="col-span-1 flex flex-col gap-2">
+            <label className="flex items-center gap-2 text-gray-700 font-semibold mb-1"><FaTags className="text-rose-400" /> Category</label>
+            <select
+              name="category"
+              value={form.category}
+              onChange={handleChange}
+              className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm"
+              required
+            >
+              <option value="">Select Category</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+          {/* Quantity */}
+          <div className="col-span-1 flex flex-col gap-2">
+            <label className="flex items-center gap-2 text-gray-700 font-semibold mb-1"><FaSortNumericUp className="text-rose-400" /> Quantity</label>
+            <input type="number" name="quantity" value={form.quantity} onChange={handleChange} placeholder="Quantity" className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm" required min="1" />
+          </div>
+          {/* Rate */}
+          <div className="col-span-1 flex flex-col gap-2">
+            <label className="flex items-center gap-2 text-gray-700 font-semibold mb-1"><FaRupeeSign className="text-rose-400" /> Rate (cost price)</label>
+            <input type="number" name="rate" value={form.rate} onChange={handleChange} placeholder="Rate" className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm" required min="1" />
+          </div>
+          {/* MRP */}
+          <div className="col-span-1 flex flex-col gap-2">
+            <label className="flex items-center gap-2 text-gray-700 font-semibold mb-1"><FaRupeeSign className="text-rose-400" /> MRP (selling price)</label>
+            <input type="number" name="mrp" value={form.mrp} onChange={handleChange} placeholder="MRP" className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm" required min="1" />
+          </div>
+          {/* Date */}
+          <div className="col-span-1 flex flex-col gap-2">
+            <label className="flex items-center gap-2 text-gray-700 font-semibold mb-1"><FaCalendarAlt className="text-rose-400" /> Date</label>
+            <input type="date" name="date" value={form.date} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm" required />
+          </div>
+          {/* Image */}
+          <div className="col-span-1 flex flex-col gap-2">
+            <label className="flex items-center gap-2 text-gray-700 font-semibold mb-1"><FaImage className="text-rose-400" /> Image</label>
+            <input type="file" name="image" accept="image/*" onChange={handleChange} className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm bg-white" required />
+          </div>
         </div>
-        <input name="product" value={form.product} onChange={handleChange} placeholder="Product" className="w-full px-5 py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm" required />
-        <textarea name="description" value={form.description} onChange={handleChange} placeholder="Description" className="w-full px-5 py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm resize-none" required />
-        {/* Category select */}
-        <select
-          name="category"
-          value={form.category}
-          onChange={handleChange}
-          className="w-full px-5 py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm"
-          required
-        >
-          <option value="">Select Category</option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
-        <input name="quantity" value={form.quantity} onChange={handleChange} placeholder="Quantity" type="number" min="1" className="w-full px-5 py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm" required />
-        <input name="rate" value={form.rate} onChange={handleChange} placeholder="Rate" type="number" min="0" step="0.01" className="w-full px-5 py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm" required />
-        <input name="mrp" value={form.mrp} onChange={handleChange} placeholder="MRP" type="number" min="0" step="0.01" className="w-full px-5 py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm" required />
-        <input name="date" value={form.date} onChange={handleChange} placeholder="Date" type="date" className="w-full px-5 py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm" required />
-        <input name="image" onChange={handleChange} type="file" accept="image/*" className="w-full px-5 py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm" required />
-        <button type="submit" className="bg-rose-500 text-white rounded-lg px-6 py-3 font-semibold hover:bg-rose-600 transition mt-2">Add Product</button>
+        <button type="submit" className="mt-4 w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg shadow-lg text-lg transition">Add Product</button>
       </form>
       {/* Seller Popup */}
       {showSellerPopup && (
