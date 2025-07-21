@@ -5,17 +5,21 @@ const productSchema = new mongoose.Schema({
   product: { type: String, required: true },
   description: { type: String, required: true },
   category: { type: String, required: true },
+  color: { 
+    name: { type: String, required: true },
+    hex: { type: String, required: true }
+  },
   quantity: { type: Number, required: true },
   rate: { type: Number, required: true },
   mrp: { type: Number, required: true },
   date: { type: String, required: true }, // Store as dd-mm-yyyy string
-  image: { type: String, required: true } // Store image URL or base64 string
+  images: [{ type: String, required: true }] // Store array of image URLs
 });
 
 const productReportSchema = new mongoose.Schema({
   product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true, unique: true },
   orderedCount: { type: Number, default: 0 },
-  viewedCount: { type: Number, default: 0 },
+  viewedCount: { type: Number, default: 0 }, // Number of times product detail page is viewed
   wishlistCount: { type: Number, default: 0 },
   cartCount: { type: Number, default: 0 },
   feedbacks: [{

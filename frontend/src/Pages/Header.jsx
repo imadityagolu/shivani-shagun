@@ -45,6 +45,7 @@ function Header() {
           <Link to='/sections/saree' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Saree</Link>
           <Link to='/sections/lehnga' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Lehnga</Link>
           <Link to='/sections/chunni' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Chunni</Link>
+          <Link to='/sections/sute' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Sute</Link>
           <Link to='/sections/allproduct' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>All Products</Link>
         </div>
         {/* Login/Profile (Desktop) */}
@@ -108,6 +109,13 @@ function Header() {
               onClick={() => setOpen(false)}
             >
               Chunni
+            </Link>
+            <Link
+              to='/sections/sute'
+              className='w-full border rounded-lg bg-white text-rose-500 py-2 px-3 text-base font-semibold shadow hover:bg-rose-100 transition text-center'
+              onClick={() => setOpen(false)}
+            >
+              Sute
             </Link>
             <Link
               to='/sections/allproduct'

@@ -118,6 +118,18 @@ function AdminDashboard() {
         <div className="hidden md:block w-full md:w-1/5 bg-white rounded-lg shadow-md p-4 mb-4 md:mb-0">
           <ul className="space-y-3">
             <li>
+              <button
+                className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'notifications' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}
+                onClick={() => setSelected('notifications')}
+              >
+                <FaBell className="text-rose-400" />
+                Notifications
+                {unreadCount > 0 && (
+                  <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1">{unreadCount}</span>
+                )}
+              </button>
+            </li>
+            <li>
               <button onClick={() => setSelected('add')} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'add' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
                 <FaPlus className="text-rose-400 w-4 h-4 mr-2" /> Add Product
               </button>
@@ -125,16 +137,6 @@ function AdminDashboard() {
             <li>
               <button onClick={() => setSelected('list')} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'list' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
                 <FaListAlt className="text-rose-400 w-4 h-4 mr-2" /> List All Products
-              </button>
-            </li>
-            <li>
-              <button onClick={() => setSelected('customers')} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'customers' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
-                <FaUser className="text-rose-400 w-4 h-4 mr-2" /> Manage Customers
-              </button>
-            </li>
-            <li>
-              <button onClick={() => setSelected('orders')} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'orders' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
-                <FaBox className="text-rose-400 w-4 h-4 mr-2" /> Orders
               </button>
             </li>
             <li>
@@ -148,21 +150,19 @@ function AdminDashboard() {
               </button>
             </li>
             <li>
-              <button
-                className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'notifications' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}
-                onClick={() => setSelected('notifications')}
-              >
-                <FaBell className="text-rose-400" />
-                Notifications
-                {unreadCount > 0 && (
-                  <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1">{unreadCount}</span>
-                )}
-              </button>
-            </li>
-            <li>
               <Link to="/Home" className={`w-full flex px-4 py-2 text-left rounded-md focus:outline-none focus:ring-2 focus:ring-rose-500`}>
                 <FaShoppingCart className="text-rose-400 w-4 h-4 mr-2" /> Go to Website
               </Link>
+            </li>
+            <li>
+              <button onClick={() => setSelected('customers')} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'customers' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
+                <FaUser className="text-rose-400 w-4 h-4 mr-2" /> Manage Customers
+              </button>
+            </li>
+            <li>
+              <button onClick={() => setSelected('orders')} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'orders' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
+                <FaBox className="text-rose-400 w-4 h-4 mr-2" /> Orders
+              </button>
             </li>
           </ul>
         </div>
@@ -180,6 +180,18 @@ function AdminDashboard() {
               </button>
               <ul className="space-y-3">
                 <li>
+                  <button
+                    className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'notifications' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}
+                    onClick={() => { setSelected('notifications'); setSidebarOpen(false); }}
+                  >
+                    <FaBell className="text-rose-400" />
+                    Notifications
+                    {unreadCount > 0 && (
+                      <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1">{unreadCount}</span>
+                    )}
+                  </button>
+                </li>
+                <li>
                   <button onClick={() => { setSelected('add'); setSidebarOpen(false); }} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'add' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
                     <FaPlus className="text-rose-400 w-4 h-4 mr-2" /> Add Product
                   </button>
@@ -187,16 +199,6 @@ function AdminDashboard() {
                 <li>
                   <button onClick={() => { setSelected('list'); setSidebarOpen(false); }} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'list' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
                     <FaListAlt className="text-rose-400 w-4 h-4 mr-2" /> List All Products
-                  </button>
-                </li>
-                <li>
-                  <button onClick={() => { setSelected('customers'); setSidebarOpen(false); }} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'customers' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
-                    <FaUser className="text-rose-400 w-4 h-4 mr-2" /> Manage Customers
-                  </button>
-                </li>
-                <li>
-                  <button onClick={() => { setSelected('orders'); setSidebarOpen(false); }} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'orders' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
-                    <FaBox className="text-rose-400 w-4 h-4 mr-2" /> Orders
                   </button>
                 </li>
                 <li>
@@ -210,21 +212,19 @@ function AdminDashboard() {
                   </button>
                 </li>
                 <li>
-                  <button
-                    className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'notifications' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}
-                    onClick={() => { setSelected('notifications'); setSidebarOpen(false); }}
-                  >
-                    <FaBell className="text-rose-400" />
-                    Notifications
-                    {unreadCount > 0 && (
-                      <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1">{unreadCount}</span>
-                    )}
-                  </button>
-                </li>
-                <li>
                   <Link to="/Home" className={`w-full flex px-4 py-2 text-left rounded-md focus:outline-none focus:ring-2 focus:ring-rose-500`}>
                     <FaShoppingCart className="text-rose-400 w-4 h-4 mr-2" /> Go to Website
                   </Link>
+                </li>
+                <li>
+                  <button onClick={() => { setSelected('customers'); setSidebarOpen(false); }} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'customers' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
+                    <FaUser className="text-rose-400 w-4 h-4 mr-2" /> Manage Customers
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => { setSelected('orders'); setSidebarOpen(false); }} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'orders' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
+                    <FaBox className="text-rose-400 w-4 h-4 mr-2" /> Orders
+                  </button>
                 </li>
               </ul>
             </div>

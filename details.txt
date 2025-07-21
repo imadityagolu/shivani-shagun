@@ -1,0 +1,17 @@
+banner - w:1800 x h:600
+product image - w:360 x h:500
+
+while updating product console error Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
+:3210/api/products/687c807c84059c8e8ea70c7d:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
+:3210/api/products/687c807c84059c8e8ea70c7d:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
+ListAllProducts.jsx:236  PATCH http://localhost:3210/api/products/687c807c84059c8e8ea70c7d 500 (Internal Server Error)
+handleEditSave @ ListAllProducts.jsx:236
+onSubmit @ ListAllProducts.jsx:548
+executeDispatch @ react-dom_client.js?v=0f049067:11736
+runWithFiberInDEV @ react-dom_client.js?v=0f049067:1485
+processDispatchQueue @ react-dom_client.js?v=0f049067:11772
+(anonymous) @ react-dom_client.js?v=0f049067:12182
+batchedUpdates$1 @ react-dom_client.js?v=0f049067:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=0f049067:11877
+dispatchEvent @ react-dom_client.js?v=0f049067:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=0f049067:14773Understand this error

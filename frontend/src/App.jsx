@@ -27,6 +27,7 @@ import ProductDetail from './Pages/Sections/ProductDetail';
 import Wishlist from './Pages/Customer/Wishlist';
 import Cart from './Pages/Customer/Cart';
 import Order from './Pages/Customer/Order';
+import Sute from './Pages/sections/Sute';
 
 const router = createBrowserRouter([
   {
@@ -116,6 +117,10 @@ const router = createBrowserRouter([
       {
         path: '/sections/allproduct',
         element: <AllProduct/>
+      },
+      {
+        path: '/sections/sute',
+        element: <Sute/>
       },
       {
         path: '/sections/product/:id',

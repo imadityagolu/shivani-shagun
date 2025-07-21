@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import Header from '../Header';
 import { toast } from 'react-toastify';
-import { FaHeart, FaShoppingCart } from 'react-icons/fa';
+import { FaHeart, FaShoppingCart, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import Footer from '../Footer';
 
 function ProductDetail() {
   const { id } = useParams();
@@ -10,6 +11,7 @@ function ProductDetail() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [imgIdx, setImgIdx] = useState(0);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -29,6 +31,15 @@ function ProductDetail() {
     };
     fetchProduct();
   }, [id]);
+
+  useEffect(() => { setImgIdx(0); }, [product?._id]);
+  useEffect(() => {
+    if (!product || !product.images || product.images.length <= 1) return;
+    const interval = setInterval(() => {
+      setImgIdx(idx => (idx + 1) % product.images.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [product]);
 
   const isCustomer = Boolean(localStorage.getItem('token'));
   const [inWishlist, setInWishlist] = useState(false);
@@ -100,16 +111,51 @@ function ProductDetail() {
           <div className="text-center py-8 text-rose-500 text-xl font-bold">{error}</div>
         ) : product ? (
           <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col md:flex-row gap-8 items-center">
-            {product.image && (
-              <img
-                src={`${import.meta.env.VITE_BACKEND_URL}${product.image}`}
-                alt={product.product}
-                className="w-full max-w-xs h-80 md:max-w-2xl md:h-[32rem] object-contain rounded bg-gray-50"
-              />
-            )}
+            <div className="flex items-center mb-2">
+              {product.images && product.images.length > 1 && (
+                <button
+                  onClick={() => setImgIdx(idx => (idx - 1 + product.images.length) % product.images.length)}
+                  className="bg-transparent hover:bg-gray-200/60 text-rose-400 rounded-full p-2 transition shadow mr-2"
+                  aria-label="Previous image"
+                >
+                  <FaChevronLeft className="w-6 h-6 text-rose-400" />
+                </button>
+              )}
+              <div className="w-72 md:w-96 h-80 md:h-[32rem] max-w-full flex items-center justify-center bg-gray-50 rounded" style={{ minHeight: '20rem', maxHeight: '32rem' }}>
+                {(product.images && product.images.length > 0) ? (
+                  <img
+                    src={`${import.meta.env.VITE_BACKEND_URL}${product.images[imgIdx]}`}
+                    alt={product.product}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <img
+                    src={`${import.meta.env.VITE_BACKEND_URL}/uploads/products/default-product-image.JPG`}
+                    alt="Default"
+                    className="w-full h-full object-contain"
+                  />
+                )}
+              </div>
+              {product.images && product.images.length > 1 && (
+                <button
+                  onClick={() => setImgIdx(idx => (idx + 1) % product.images.length)}
+                  className="bg-transparent hover:bg-gray-200/60 text-rose-400 rounded-full p-2 transition shadow ml-2"
+                  aria-label="Next image"
+                >
+                  <FaChevronRight className="w-6 h-6 text-rose-400" />
+                </button>
+              )}
+            </div>
             <div className="flex-1 flex flex-col gap-2">
               <h2 className="text-2xl font-bold text-rose-500 mb-2">{product.product}</h2>
               <div className="text-gray-600 text-lg mb-2">{product.description}</div>
+              {product.color && product.color.name && (
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="inline-block w-5 h-5 rounded-full border border-gray-300" style={{ backgroundColor: product.color.hex || '#ccc' }}></span>
+                  <span className="text-sm text-gray-700 font-medium">{product.color.name}</span>
+                  <span className="text-xs text-gray-400 italic ml-2">Color may vary from original</span>
+                </div>
+              )}
               <div className="text-gray-500 text-base mb-1">Category: {product.category}</div>
               <div className="text-gray-700 text-md text-red-500 font-semibold mb-1">Price: ₹<span className='line-through'> {(product.rate)*3} </span></div>
               <div className="text-gray-700 text-xl text-green-500 font-semibold mb-1">MRP: ₹{product.mrp} /-</div>
@@ -150,9 +196,10 @@ function ProductDetail() {
       <div className="max-w-7xl mx-auto mt-4 px-4">
         <div className="bg-blue-50 border-l-4 border-blue-400 text-blue-700 p-4 rounded-lg shadow flex items-center gap-3">
           <span className="font-bold">Note:</span>
-          Product can be returned within only <span className="font-bold">24 hours</span> of delivery, not after that.
+          Product are returnable within 24 hours of delivery.
         </div>
       </div>
+      <Footer />
     </>
   );
 }

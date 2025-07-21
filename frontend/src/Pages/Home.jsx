@@ -4,6 +4,7 @@ import banner1 from '../images/banners/banner-1.png';
 import banner2 from '../images/banners/banner-2.png';
 import leh1 from '../images/store/leh-1.mp4';
 import leh2 from '../images/store/leh-2.mp4';
+import Footer from './Footer';
 
 function Home() {
   const images = [banner1, banner2];
@@ -100,6 +101,7 @@ function Home() {
           </div>
         ))}
       </div>
+      <Footer />
     </>
   );
 }

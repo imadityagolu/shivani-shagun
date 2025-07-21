@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Header from '../Header';
 import { Link } from 'react-router-dom';
+import Footer from '../Footer';
 
 function AllProduct() {
   const [products, setProducts] = useState([]);
@@ -77,15 +78,7 @@ function AllProduct() {
           <>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {paginated.map((p) => (
-                <Link to={`/sections/product/${p._id}`} key={p._id} className="bg-white rounded-xl shadow-lg flex flex-col items-center p-4 hover:shadow-2xl transition cursor-pointer">
-                  {p.image && (
-                    <img src={`${import.meta.env.VITE_BACKEND_URL}${p.image}`} alt={p.product} className="w-full h-64 object-contain rounded mb-3 bg-gray-50" />
-                  )}
-                  <h3 className="text-lg font-bold text-rose-500 mb-1 text-center w-full truncate">{p.product || 'No Name'}</h3>
-                  <div className="text-gray-500 text-sm mb-2 text-center w-full truncate">{p.category || ''}</div>
-                  <div className="text-gray-700 font-semibold mb-1">MRP: ₹{p.mrp || ''}</div>
-                  <div className="text-gray-600 text-xs mb-2 text-center w-full truncate">{p.description || ''}</div>
-                </Link>
+                <ProductCard key={p._id} product={p} BACKEND_URL={import.meta.env.VITE_BACKEND_URL} />
               ))}
             </div>
             {/* Pagination controls */}
@@ -119,7 +112,40 @@ function AllProduct() {
           </>
         )}
       </div>
+      <Footer />
     </>
+  );
+}
+
+function ProductCard({ product, BACKEND_URL }) {
+  const [imgIdx, setImgIdx] = useState(0);
+  const images = product.images && product.images.length > 0 ? product.images : [`/uploads/products/default-product-image.JPG`];
+  useEffect(() => {
+    if (images.length <= 1) return;
+    const interval = setInterval(() => {
+      setImgIdx(idx => (idx + 1) % images.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [images.length]);
+  useEffect(() => { setImgIdx(0); }, [product._id]);
+  return (
+    <Link to={`/sections/product/${product._id}`} className="bg-white rounded-xl shadow-lg flex flex-col items-center p-4 hover:shadow-2xl transition cursor-pointer">
+      <img
+        src={`${BACKEND_URL}${images[imgIdx]}`}
+        alt={product.product}
+        className="w-full h-64 object-contain rounded mb-3 bg-gray-50"
+      />
+      <h3 className="text-lg font-bold text-rose-500 mb-1 text-center w-full truncate">{product.product || 'No Name'}</h3>
+      {product.color && product.color.name && (
+        <div className="flex items-center gap-2 mb-1">
+          <span className="inline-block w-4 h-4 rounded-full border border-gray-300" style={{ backgroundColor: product.color.hex || '#ccc' }}></span>
+          <span className="text-xs text-gray-700 font-medium">{product.color.name}</span>
+        </div>
+      )}
+      <div className="text-gray-500 text-sm mb-2 text-center w-full truncate">{product.category || ''}</div>
+      <div className="text-gray-700 font-semibold mb-1">MRP: ₹{product.mrp || ''}</div>
+      <div className="text-gray-600 text-xs mb-2 text-center w-full truncate">{product.description || ''}</div>
+    </Link>
   );
 }
 
