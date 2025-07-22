@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+import { FaFileExcel, FaFileCsv } from 'react-icons/fa6';
 
 function ShowBudget() {
   const [orders, setOrders] = useState([]);
@@ -9,6 +12,7 @@ function ShowBudget() {
   const [dateSort, setDateSort] = useState('desc');
   const [monthFilter, setMonthFilter] = useState('');
   const [yearFilter, setYearFilter] = useState('');
+  const [showOnlyDue, setShowOnlyDue] = useState(false);
 
   useEffect(() => {
     const fetchOrdersAndProducts = async () => {
@@ -46,8 +50,7 @@ function ShowBudget() {
   };
 
   // Map productId to rate
-  const productRateMap = {};
-  products.forEach(p => { productRateMap[p._id] = p.rate; });
+  // products.forEach(p => { productRateMap[p._id] = p.rate; });
 
   return (
     <div className="max-w-7xl mx-auto p-4">
@@ -60,6 +63,13 @@ function ShowBudget() {
           placeholder="Search by customer, phone, or product name"
           className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow w-full sm:w-1/2"
         />
+        <button
+          type="button"
+          className={`px-4 py-2 rounded-lg font-bold border transition shadow text-xs whitespace-nowrap ${showOnlyDue ? 'bg-red-500 text-white border-red-500' : 'bg-gray-200 text-gray-700 border-gray-300 hover:bg-gray-300'}`}
+          onClick={() => setShowOnlyDue(v => !v)}
+        >
+          Due
+        </button>
         <select
           value={dateSort}
           onChange={e => setDateSort(e.target.value)}
@@ -103,6 +113,188 @@ function ShowBudget() {
           Reset
         </button>
       </div>
+      {/* Summary Table */}
+      {(() => {
+        // Filtered orders (same logic as table)
+        const filteredOrders = orders
+          .filter(order => {
+            const d = new Date(order.createdAt);
+            if (monthFilter && d.getMonth() + 1 !== Number(monthFilter)) return false;
+            if (yearFilter && d.getFullYear() !== Number(yearFilter)) return false;
+            return true;
+          })
+          .filter(order => {
+            if (!showOnlyDue) return true;
+            return Number(order.due) > 0;
+          })
+          .sort((a, b) => {
+            if (dateSort === 'asc') return new Date(a.createdAt) - new Date(b.createdAt);
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          })
+          .filter(order => {
+            const s = search.trim().toLowerCase();
+            if (!s) return true;
+            const customerMatch = (order.customer || '').toLowerCase().includes(s);
+            const phoneMatch = (order.mobile || '').toLowerCase().includes(s);
+            const productMatch = Array.isArray(order.products)
+              ? order.products.some(p => (p.product || '').toLowerCase().includes(s))
+              : (order.products || '').toLowerCase().includes(s);
+            return customerMatch || phoneMatch || productMatch;
+          });
+
+        // XLSX download handler
+        const handleDownloadXLSX = () => {
+          if (filteredOrders.length === 0) return;
+          // Sort by date ascending for export
+          const exportOrders = [...filteredOrders].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+          const headers = [
+            'Customer', 'Mobile', 'Address', 'Products', 'Quantity', 'Total', 'PaymentMethod', 'Mode', 'Status', 'Paid', 'Due', 'Cost', 'Date', 'P/L'
+          ];
+          const rows = exportOrders.map(order => {
+            // Products as string
+            let productsStr = '';
+            if (Array.isArray(order.products)) {
+              productsStr = order.products.map(p => {
+                let name = '';
+                if (Array.isArray(p.product)) {
+                  name = p.product.join(', ');
+                } else if (typeof p.product === 'string' && p.product.trim()) {
+                  name = p.product;
+                } else {
+                  name = 'No Name';
+                }
+                return name + ' (' + (p.quantity || 1) + ')';
+              }).join(', ');
+            } else {
+              productsStr = order.products + ' (' + (order.quantity || 1) + ')';
+            }
+            const cost = Number(order.cost) || 0;
+            const pl = Number(order.total) - cost - Number(order.due);
+            return [
+              order.customer || '',
+              order.mobile || '',
+              order.address || '',
+              productsStr,
+              order.quantity !== undefined && order.quantity !== null ? order.quantity : '',
+              order.total !== undefined && order.total !== null ? order.total : '',
+              order.paymentMethod || '',
+              order.mode || '',
+              order.status || '',
+              order.paid !== undefined && order.paid !== null ? order.paid : '',
+              order.due !== undefined && order.due !== null ? order.due : '',
+              order.cost !== undefined && order.cost !== null ? order.cost : '',
+              formatDate(order.createdAt),
+              pl
+            ];
+          });
+          const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Report');
+          const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+          saveAs(new Blob([wbout], { type: 'application/octet-stream' }), 'report.xlsx');
+        };
+
+        // CSV download handler
+        const handleDownloadCSV = () => {
+          if (filteredOrders.length === 0) return;
+          // Sort by date ascending for export
+          const exportOrders = [...filteredOrders].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+          const headers = [
+            'Customer', 'Mobile', 'Address', 'Products', 'Quantity', 'Total', 'PaymentMethod', 'Mode', 'Status', 'Paid', 'Due', 'Cost', 'Date', 'P/L'
+          ];
+          const rows = exportOrders.map(order => {
+            let productsStr = '';
+            if (Array.isArray(order.products)) {
+              productsStr = order.products.map(p => {
+                let name = '';
+                if (Array.isArray(p.product)) {
+                  name = p.product.join(', ');
+                } else if (typeof p.product === 'string' && p.product.trim()) {
+                  name = p.product;
+                } else {
+                  name = 'No Name';
+                }
+                return name + ' (' + (p.quantity || 1) + ')';
+              }).join(', ');
+            } else {
+              productsStr = order.products + ' (' + (order.quantity || 1) + ')';
+            }
+            const cost = Number(order.cost) || 0;
+            const pl = Number(order.total) - cost - Number(order.due);
+            return [
+              order.customer || '',
+              order.mobile || '',
+              order.address || '',
+              productsStr,
+              order.quantity !== undefined && order.quantity !== null ? order.quantity : '',
+              order.total !== undefined && order.total !== null ? order.total : '',
+              order.paymentMethod || '',
+              order.mode || '',
+              order.status || '',
+              order.paid !== undefined && order.paid !== null ? order.paid : '',
+              order.due !== undefined && order.due !== null ? order.due : '',
+              order.cost !== undefined && order.cost !== null ? order.cost : '',
+              formatDate(order.createdAt),
+              pl
+            ];
+          });
+          const csvContent = [headers, ...rows].map(r => r.map(field => `"${String(field).replace(/"/g, '""')}"`).join(',')).join('\n');
+          const blob = new Blob([csvContent], { type: 'text/csv' });
+          saveAs(blob, 'report.csv');
+        };
+
+        // Place buttons at the right corner of the summary table
+        if (filteredOrders.length === 0) return null;
+
+        // Calculate sums for summary table
+        let sumTotal = 0, sumPaid = 0, sumDue = 0, sumCost = 0, sumPL = 0;
+        filteredOrders.forEach(order => {
+          const total = Number(order.total) || 0;
+          const paid = Number(order.paid) || 0;
+          const due = Number(order.due) || 0;
+          const cost = Number(order.cost) || 0;
+          const pl = total - cost - due;
+          sumTotal += total;
+          sumPaid += paid;
+          sumDue += due;
+          sumCost += cost;
+          sumPL += pl;
+        });
+        return (
+          <div className="overflow-x-auto mb-4">
+            <div className="flex flex-row items-start justify-between gap-4 w-full">
+              <table className="min-w-max border text-xs md:text-sm bg-white shadow rounded">
+                <thead className="bg-rose-100">
+                  <tr>
+                    <th className="border px-3 py-2">Total</th>
+                    <th className="border px-3 py-2">Paid</th>
+                    <th className="border px-3 py-2">Due</th>
+                    <th className="border px-3 py-2">Cost</th>
+                    <th className="border px-3 py-2">P/L</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="border px-3 py-2 font-bold">₹{sumTotal.toLocaleString('en-IN')}</td>
+                    <td className="border px-3 py-2 font-bold">₹{sumPaid.toLocaleString('en-IN')}</td>
+                    <td className="border px-3 py-2 font-bold">₹{sumDue.toLocaleString('en-IN')}</td>
+                    <td className="border px-3 py-2 font-bold">₹{sumCost.toLocaleString('en-IN')}</td>
+                    <td className={"border px-3 py-2 font-bold " + (sumPL < 0 ? 'text-red-500' : 'text-green-700')}>{sumPL < 0 ? `-₹${Math.abs(sumPL).toLocaleString('en-IN')}` : `₹${sumPL.toLocaleString('en-IN')}`}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div className="flex flex-col items-end gap-2 min-w-fit">
+                <button onClick={handleDownloadXLSX} className="flex items-center gap-2 px-3 py-1 bg-green-500 text-white rounded text-xs font-semibold hover:bg-green-600 transition">
+                  <FaFileExcel className="w-4 h-4" /> Download XLSX
+                </button>
+                <button onClick={handleDownloadCSV} className="flex items-center gap-2 px-3 py-1 bg-blue-500 text-white rounded text-xs font-semibold hover:bg-blue-600 transition">
+                  <FaFileCsv className="w-4 h-4" /> Download CSV
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
       {loading ? (
         <div className="text-center py-8 text-lg">Loading...</div>
       ) : error ? (
@@ -112,77 +304,113 @@ function ShowBudget() {
           <table className="min-w-full border text-xs md:text-sm">
             <thead className="bg-gray-100">
               <tr>
-                <th className="border px-2 py-1">customer</th>
-                <th className="border px-2 py-1">mobile</th>
-                <th className="border px-2 py-1">address</th>
-                <th className="border px-2 py-1">products</th>
-                <th className="border px-2 py-1">total</th>
-                <th className="border px-2 py-1">paymentMethod</th>
-                <th className="border px-2 py-1">mode</th>
-                <th className="border px-2 py-1">status</th>
-                <th className="border px-2 py-1">paid</th>
-                <th className="border px-2 py-1">due</th>
-                <th className="border px-2 py-1">cost</th>
-                <th className="border px-2 py-1">pl</th>
-                <th className="border px-2 py-1">createdAt</th>
+                <th className="border px-2 py-1 text-[10px]">customer</th>
+                <th className="border px-2 py-1 text-[10px]">mobile</th>
+                <th className="border px-2 py-1 text-[10px]">address</th>
+                <th className="border px-2 py-1 text-[10px]">products</th>
+                <th className="border px-2 py-1 text-[10px]">quantity</th>
+                <th className="border px-2 py-1 text-[10px]">total</th>
+                <th className="border px-2 py-1 text-[10px]">paymentMethod</th>
+                <th className="border px-2 py-1 text-[10px]">mode</th>
+                <th className="border px-2 py-1 text-[10px]">status</th>
+                <th className="border px-2 py-1 text-[10px]">paid</th>
+                <th className="border px-2 py-1 text-[10px]">due</th>
+                <th className="border px-2 py-1 text-[10px]">cost</th>
+                <th className="border px-2 py-1 text-[10px]">createdAt</th>
+                <th className="border px-2 py-1 text-[10px]">pl</th>
               </tr>
             </thead>
             <tbody>
-              {orders
-                .slice() // copy array to avoid mutating state
-                .filter(order => {
-                  // Month/year filter
+              {(() => {
+                const filteredOrders = orders
+                  .slice()
+                  .filter(order => {
+                    const d = new Date(order.createdAt);
+                    if (monthFilter && d.getMonth() + 1 !== Number(monthFilter)) return false;
+                    if (yearFilter && d.getFullYear() !== Number(yearFilter)) return false;
+                    return true;
+                  })
+                  .filter(order => {
+                    if (!showOnlyDue) return true;
+                    return Number(order.due) > 0;
+                  })
+                  .sort((a, b) => {
+                    if (dateSort === 'asc') return new Date(a.createdAt) - new Date(b.createdAt);
+                    return new Date(b.createdAt) - new Date(a.createdAt);
+                  })
+                  .filter(order => {
+                    const s = search.trim().toLowerCase();
+                    if (!s) return true;
+                    const customerMatch = (order.customer || '').toLowerCase().includes(s);
+                    const phoneMatch = (order.mobile || '').toLowerCase().includes(s);
+                    const productMatch = Array.isArray(order.products)
+                      ? order.products.some(p => (p.product || '').toLowerCase().includes(s))
+                      : (order.products || '').toLowerCase().includes(s);
+                    return customerMatch || phoneMatch || productMatch;
+                  });
+                let lastMonth = null;
+                let lastYear = null;
+                const rows = [];
+                filteredOrders.forEach((order, idx) => {
                   const d = new Date(order.createdAt);
-                  if (monthFilter && d.getMonth() + 1 !== Number(monthFilter)) return false;
-                  if (yearFilter && d.getFullYear() !== Number(yearFilter)) return false;
-                  return true;
-                })
-                .sort((a, b) => {
-                  if (dateSort === 'asc') return new Date(a.createdAt) - new Date(b.createdAt);
-                  return new Date(b.createdAt) - new Date(a.createdAt);
-                })
-                .filter(order => {
-                  const s = search.trim().toLowerCase();
-                  if (!s) return true;
-                  // Check customer name, phone, or any product name
-                  const customerMatch = (order.customer || '').toLowerCase().includes(s);
-                  const phoneMatch = (order.mobile || '').toLowerCase().includes(s);
-                  const productMatch = order.products.some(p => (p.product || '').toLowerCase().includes(s));
-                  return customerMatch || phoneMatch || productMatch;
-                })
-                .map((order) => {
-                const totalQty = order.products.reduce((sum, p) => sum + (Number(p.quantity) || 1), 0);
-                // Calculate cost: sum of (rate * quantity) for all products in the order
-                const cost = order.products.reduce((sum, p) => {
-                  const rate = productRateMap[p._id] || 0;
-                  return sum + rate * (Number(p.quantity) || 1);
-                }, 0);
-                // Calculate PL: total - cost - due
-                const pl = Number(order.total) - cost - Number(order.due);
-                return (
-                  <tr key={order._id} className="hover:bg-rose-50 transition">
-                    <td className="border px-2 py-1">{order.customer || ''}</td>
-                    <td className="border px-2 py-1">{order.mobile || ''}</td>
-                    <td className="border px-2 py-1">{order.address || ''}</td>
-                    <td className="border px-2 py-1">
-                      {order.products.map((p, i) => (
-                        <span key={i}>
-                          {(p.product || '') + ' (' + (p.quantity || 1) + ')'}{i < order.products.length - 1 ? ', ' : ''}
-                        </span>
-                      ))}
-                    </td>
-                    <td className="border px-2 py-1">{order.total !== undefined && order.total !== null ? `₹${order.total}` : ''}</td>
-                    <td className="border px-2 py-1">{order.paymentMethod || ''}</td>
-                    <td className="border px-2 py-1">{order.mode || ''}</td>
-                    <td className="border px-2 py-1">{order.status || ''}</td>
-                    <td className="border px-2 py-1">{order.paid !== undefined && order.paid !== null ? `₹${order.paid}` : ''}</td>
-                    <td className="border px-2 py-1">{order.due !== undefined && order.due !== null ? `₹${order.due}` : ''}</td>
-                    <td className="border px-2 py-1">{cost !== undefined && cost !== null ? `₹${cost}` : ''}</td>
-                    <td className={"border px-2 py-1 font-bold " + (pl < 0 ? 'text-red-500' : 'text-green-700')}>{pl !== undefined && pl !== null ? (pl < 0 ? `-₹${Math.abs(pl)}` : `₹${pl}`) : ''}</td>
-                    <td className="border px-2 py-1 whitespace-nowrap">{formatDate(order.createdAt) || ''}</td>
-                  </tr>
-                );
-              })}
+                  const month = d.getMonth();
+                  const year = d.getFullYear();
+                  if (lastMonth !== month || lastYear !== year) {
+                    rows.push(
+                      <tr key={`month-${month}-${year}`}>
+                        <td colSpan={14} className="bg-rose-50 text-rose-700 font-bold text-center text-xs py-2">
+                          {d.toLocaleString('default', { month: 'long' })} {year}
+                        </td>
+                      </tr>
+                    );
+                    lastMonth = month;
+                    lastYear = year;
+                  }
+                  const cost = Number(order.cost) || 0;
+                  const pl = Number(order.total) - cost - Number(order.due);
+                  rows.push(
+                    <tr key={order._id} className="hover:bg-rose-50 transition">
+                      <td className="border px-2 py-1 text-[10px]">{order.customer || ''}</td>
+                      <td className="border px-2 py-1 text-[10px]">{order.mobile || ''}</td>
+                      <td className="border px-2 py-1 text-[10px]">{order.address || ''}</td>
+                      <td className="border px-2 py-1 text-[10px]">
+                        {Array.isArray(order.products) ? (
+                          order.products.map((p, i) => {
+                            let name = '';
+                            if (Array.isArray(p.product)) {
+                              name = p.product.join(', ');
+                            } else if (typeof p.product === 'string' && p.product.trim()) {
+                              name = p.product;
+                            } else {
+                              name = 'No Name';
+                            }
+                            return (
+                              <span key={i}>
+                                {name + ' (' + (p.quantity || 1) + ')'}{i < order.products.length - 1 ? ', ' : ''}
+                              </span>
+                            );
+                          })
+                        ) : (
+                          <span>
+                            {order.products + ' (' + (order.quantity || 1) + ')'}
+                          </span>
+                        )}
+                      </td>
+                      <td className="border px-2 py-1 text-[10px]">{order.quantity !== undefined && order.quantity !== null ? order.quantity : ''}</td>
+                      <td className="border px-2 py-1 text-[10px]">{order.total !== undefined && order.total !== null ? `₹${order.total}` : ''}</td>
+                      <td className="border px-2 py-1 text-[10px]">{order.paymentMethod || ''}</td>
+                      <td className="border px-2 py-1 text-[10px]">{order.mode || ''}</td>
+                      <td className="border px-2 py-1 text-[10px]">{order.status || ''}</td>
+                      <td className="border px-2 py-1 text-[10px]">{order.paid !== undefined && order.paid !== null ? `₹${order.paid}` : ''}</td>
+                      <td className={"border px-2 py-1 text-[10px] " + (Number(order.due) > 0 ? 'text-red-500' : '')}>{order.due !== undefined && order.due !== null ? `₹${order.due}` : ''}</td>
+                      <td className="border px-2 py-1 text-[10px]">{order.cost !== undefined && order.cost !== null ? `₹${order.cost}` : ''}</td>
+                      <td className="border px-2 py-1 text-[10px]">{formatDate(order.createdAt)}</td>
+                      <td className={"border px-2 py-1 font-bold text-[10px] " + (pl < 0 ? 'text-red-500' : 'text-green-700')}>{pl < 0 ? `-₹${Math.abs(pl)}` : `₹${pl}`}</td>
+                    </tr>
+                  );
+                });
+                return rows;
+              })()}
             </tbody>
           </table>
         </div>

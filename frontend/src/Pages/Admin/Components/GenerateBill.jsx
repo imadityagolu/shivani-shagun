@@ -90,6 +90,8 @@ function GenerateBill() {
       toast.error('Please select at least one product');
       return;
     }
+    // Calculate cost: sum of rate * quantity for all products
+    const cost = selectedProducts.reduce((sum, p) => sum + (Number(p.rate || 0) * Number(p.quantity || 1)), 0);
     const orderPayload = {
       customer: customer.name,
       mobile: customer.mobile,
@@ -99,7 +101,9 @@ function GenerateBill() {
           product: p.product,
           category: p.category,
           mrp: p.mrp,
-          image: p.images && p.images[0]
+          image: p.images && p.images[0],
+          quantity: p.quantity,
+          rate: p.rate
         };
         if (p._id && /^[a-f\d]{24}$/i.test(p._id)) {
           prod._id = p._id;
@@ -109,7 +113,8 @@ function GenerateBill() {
       total,
       paymentMethod,
       paid,
-      due
+      due,
+      cost
     };
     try {
       const res = await fetch(`${BACKEND_URL}/api/admin/orders`, {

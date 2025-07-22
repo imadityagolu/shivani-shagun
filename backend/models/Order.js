@@ -15,12 +15,14 @@ const orderSchema = new mongoose.Schema({
       quantity: { type: Number, default: 1 }
     }
   ],
+  quantity: { type: Number, default: 1 }, // total quantity of all products
   total: { type: Number, required: true },
   paymentMethod: { type: String, required: true },
   mode: { type: String, enum: ['website', 'shop'], default: 'website' },
   status: { type: String, default: 'order placed' },
   paid: { type: Number, default: 0 },
   due: { type: Number, default: 0 },
+  cost: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
 });
 

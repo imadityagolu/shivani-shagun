@@ -86,8 +86,8 @@ function AdminDashboard() {
 
   return (
     <div className="bg-gray-100 min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="bg-white shadow-md p-4 flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
+      {/* Fixed Header */}
+      <header className="bg-white shadow-md p-4 flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0 fixed top-0 left-0 w-full z-50" style={{height: '72px', minHeight: '56px'}}>
         <div className="flex w-full items-center gap-3 sm:justify-between">
           <div className="flex items-center space-x-3">
             {/* Hamburger for mobile */}
@@ -113,9 +113,9 @@ function AdminDashboard() {
       </header>
 
       {/* Main Content */}
-      <div className="flex flex-1 flex-col md:flex-row p-2 sm:p-4 md:p-6 gap-4 md:gap-6">
-        {/* Sidebar for desktop */}
-        <div className="hidden md:block w-full md:w-1/5 bg-white rounded-lg shadow-md p-4 mb-4 md:mb-0">
+      <div className="flex flex-1 flex-col md:flex-row gap-4 md:gap-6 pt-[72px] md:pt-[72px]" style={{minHeight: 'calc(100vh - 72px)'}}>
+        {/* Fixed Sidebar for desktop */}
+        <div className="hidden md:block fixed top-[72px] left-0 h-[calc(100vh-72px)] w-1/5 bg-white rounded-none rounded-r-lg shadow-md p-4 overflow-y-auto z-40">
           <ul className="space-y-3">
             <li>
               <button
@@ -140,6 +140,11 @@ function AdminDashboard() {
               </button>
             </li>
             <li>
+              <button onClick={() => setSelected('orders')} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'orders' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
+                <FaBox className="text-rose-400 w-4 h-4 mr-2" /> Orders
+              </button>
+            </li>
+            <li>
               <button onClick={() => setSelected('budget')} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'budget' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
                 <FaMapMarkerAlt className="text-rose-400 w-4 h-4 mr-2" /> Budget
               </button>
@@ -159,12 +164,7 @@ function AdminDashboard() {
             </li>
             <li>
               <button onClick={() => setSelected('customers')} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'customers' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
-                <FaUser className="text-rose-400 w-4 h-4 mr-2" /> Manage Customers
-              </button>
-            </li>
-            <li>
-              <button onClick={() => setSelected('orders')} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'orders' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
-                <FaBox className="text-rose-400 w-4 h-4 mr-2" /> Orders
+                <FaUser className="text-rose-400 w-4 h-4 mr-2" /> Customers
               </button>
             </li>
           </ul>
@@ -205,6 +205,11 @@ function AdminDashboard() {
                   </button>
                 </li>
                 <li>
+                  <button onClick={() => { setSelected('orders'); setSidebarOpen(false); }} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'orders' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
+                    <FaBox className="text-rose-400 w-4 h-4 mr-2" /> Orders
+                  </button>
+                </li>
+                <li>
                   <button onClick={() => { setSelected('budget'); setSidebarOpen(false); }} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'budget' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
                     <FaMapMarkerAlt className="text-rose-400 w-4 h-4 mr-2" /> Budget
                   </button>
@@ -224,12 +229,7 @@ function AdminDashboard() {
                 </li>
                 <li>
                   <button onClick={() => { setSelected('customers'); setSidebarOpen(false); }} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'customers' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
-                    <FaUser className="text-rose-400 w-4 h-4 mr-2" /> Manage Customers
-                  </button>
-                </li>
-                <li>
-                  <button onClick={() => { setSelected('orders'); setSidebarOpen(false); }} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'orders' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
-                    <FaBox className="text-rose-400 w-4 h-4 mr-2" /> Orders
+                    <FaUser className="text-rose-400 w-4 h-4 mr-2" /> Customers
                   </button>
                 </li>
               </ul>
@@ -238,7 +238,7 @@ function AdminDashboard() {
         )}
 
         {/* Right Content Area (80%) */}
-        <div className="w-full md:w-4/5 bg-white rounded-lg shadow-md p-4 sm:p-6 flex flex-col md:flex-row gap-6">
+        <div className="w-full md:ml-[20%] md:w-4/5 bg-white rounded-lg shadow-md p-4 sm:p-6 flex flex-col md:flex-row gap-6 min-h-[calc(100vh-72px)]">
           {selected === '' ? (
             <div className="flex flex-1 items-center justify-center w-full h-full">
               <div className="w-full max-w-2xl mx-auto">

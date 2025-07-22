@@ -352,6 +352,10 @@ exports.placeOrder = async (req, res) => {
       images: p.images || [],
       image: p.image || (p.images && p.images[0]) || ''
     }));
+    // Calculate total quantity
+    const totalQuantity = productsWithQty.reduce((sum, p) => sum + (Number(p.quantity) || 1), 0);
+    // Calculate cost: sum of rate * quantity for all products
+    const cost = productsWithQty.reduce((sum, p) => sum + (Number(p.rate || 0) * Number(p.quantity || 1)), 0);
     const order = await Order.create({
       customer,
       mobile,
@@ -361,7 +365,9 @@ exports.placeOrder = async (req, res) => {
       paymentMethod,
       mode: 'website',
       paid: total,
-      due: 0
+      due: 0,
+      cost,
+      quantity: totalQuantity,
     });
     // Add notification to customer
     const productList = products.map(p => `${p.product} (₹${p.mrp})`).join(', ');
@@ -376,8 +382,8 @@ exports.placeOrder = async (req, res) => {
     const admin = await Admin.findOne();
     if (admin) {
       admin.notifications.unshift({
-        title: 'New Order Placed',
-        message: `Order (${order._id}) placed by customer ${customer}.`,
+        title: 'Order Placed by Online Website',
+        message: `Order (${order._id}) placed by online website by customer ${customer} (${mobile}).`,
         timestamp: new Date(),
         read: false
       });

@@ -196,7 +196,7 @@ exports.markAllNotificationsAsRead = async (req, res) => {
 
 exports.createOrder = async (req, res) => {
   try {
-    const { products, total, paymentMethod, paid, due, customer, mobile, address } = req.body;
+    const { products, total, paymentMethod, paid, due, customer, mobile, address, cost } = req.body;
     if (!products || !Array.isArray(products) || products.length === 0) {
       return res.status(400).json({ message: 'No products in order' });
     }
@@ -205,10 +205,30 @@ exports.createOrder = async (req, res) => {
     }
     // Ensure quantity is set for each product
     const productsWithQty = products.map(p => ({ ...p, quantity: p.quantity ? Number(p.quantity) : 1 }));
+    // Calculate total quantity
+    const totalQuantity = productsWithQty.reduce((sum, p) => sum + (Number(p.quantity) || 1), 0);
+    // Check stock for each product
+    const Product = require('../models/Product');
+    for (const p of productsWithQty) {
+      if (p._id && p.quantity > 0) {
+        const dbProduct = await Product.findById(p._id);
+        if (!dbProduct) {
+          return res.status(400).json({ message: `Product not found: ${p.product}` });
+        }
+        if (dbProduct.quantity < p.quantity) {
+          return res.status(400).json({ message: `Only ${dbProduct.quantity} units available for product '${dbProduct.product}'.` });
+        }
+      }
+    }
     // Determine status for shop orders
     let status = 'due';
     if (Number(total) === Number(paid)) {
       status = 'complete';
+    }
+    // Calculate cost if not provided
+    let finalCost = cost;
+    if (typeof finalCost !== 'number' || isNaN(finalCost)) {
+      finalCost = productsWithQty.reduce((sum, p) => sum + (Number(p.rate || 0) * Number(p.quantity || 1)), 0);
     }
     const order = await Order.create({
       customer,
@@ -220,9 +240,33 @@ exports.createOrder = async (req, res) => {
       mode: 'shop',
       paid,
       due,
-      status
+      status,
+      cost: finalCost,
+      quantity: totalQuantity,
     });
+    // Decrease quantity of each product by the ordered quantity
+    for (const p of productsWithQty) {
+      if (p._id && p.quantity > 0) {
+        await Product.findByIdAndUpdate(p._id, { $inc: { quantity: -Number(p.quantity) } });
+      }
+    }
     res.json({ message: 'Order created successfully', order });
+    // Add notification to admin for shop order
+    try {
+      const admin = await Admin.findOne();
+      if (admin) {
+        admin.notifications.unshift({
+          title: 'Order Completed by Shop',
+          message: `Order (${order._id}) completed by shop for customer ${customer}.`,
+          timestamp: new Date(),
+          read: false
+        });
+        await admin.save();
+      }
+    } catch (notifyErr) {
+      // Log but do not block order creation
+      console.error('Failed to add admin notification for shop order:', notifyErr);
+    }
   } catch (err) {
     console.error('Order creation error:', err);
     console.error('Request body:', req.body);

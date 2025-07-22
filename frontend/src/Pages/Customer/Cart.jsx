@@ -96,7 +96,6 @@ function Cart() {
   const total = inStockProducts.reduce((sum, p) => sum + (Number(p.mrp) || 0), 0);
   return (
     <>
-      <Header />
       <div className="max-w-7xl mx-auto mt-8 px-4">
         <h2 className="text-2xl font-bold text-rose-500 mb-6 text-center">My Cart</h2>
         {loading ? (

@@ -255,6 +255,9 @@ function Customers() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{customer.email}</div>
                       <div className="text-sm text-gray-500">+91 {customer.mobile}</div>
+                      {customer.address && (
+                        <div className="text-xs text-gray-400 mt-1">{typeof customer.address === 'string' ? customer.address : `${customer.address.street || ''}${customer.address.city ? ', ' + customer.address.city : ''}${customer.address.state ? ', ' + customer.address.state : ''}${customer.address.pincode ? ', ' + customer.address.pincode : ''}${customer.address.country ? ', ' + customer.address.country : ''}`}</div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(customer.createdAt)}

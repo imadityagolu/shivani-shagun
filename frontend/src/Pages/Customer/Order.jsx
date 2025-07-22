@@ -53,6 +53,18 @@ function Order() {
     if (paymentMethod !== 'cod') return;
     const token = localStorage.getItem('token');
     if (!token) return;
+    // Address validation
+    const addressFields = [
+      profile?.address?.street,
+      profile?.address?.city,
+      profile?.address?.state,
+      profile?.address?.pincode,
+      profile?.address?.country
+    ];
+    if (addressFields.some(f => !f || f.trim() === '')) {
+      toast.error('Please complete your address (street, city, state, pincode, country) before placing the order.');
+      return;
+    }
     try {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
       const res = await fetch(`${BACKEND_URL}/api/customer/order`, {
@@ -65,7 +77,8 @@ function Order() {
             category: p.category,
             mrp: p.mrp,
             image: p.image,
-            images: p.images
+            images: p.images,
+            rate: p.rate
           })),
           total,
           customer: profile?.name,

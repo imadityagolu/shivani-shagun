@@ -3,6 +3,8 @@ import { FaUserCircle, FaBox, FaUser, FaHeart, FaShoppingCart, FaCog, FaBars, Fa
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import logo from '../../Images/logo.png';
+import Wishlist from './Wishlist';
+import Cart from './Cart';
 
 function Profile() {
   const userName = localStorage.getItem('customerName') || 'Customer';
@@ -478,16 +480,22 @@ function Profile() {
               </button>
             </li>
             <li>
-              <Link to="/Wishlist" className="block w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2">
+              <button
+                className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selectedSection === 'wishlist' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}
+                onClick={() => setSelectedSection('wishlist')}
+              >
                 <FaHeart className="text-rose-400" />
                 Wishlist
-              </Link>
+              </button>
             </li>
             <li>
-              <Link to="/Cart" className="block w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2">
+              <button
+                className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selectedSection === 'cart' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}
+                onClick={() => setSelectedSection('cart')}
+              >
                 <FaShoppingCart className="text-rose-400" />
                 Cart
-              </Link>
+              </button>
             </li>
             <li>
               <button
@@ -547,16 +555,22 @@ function Profile() {
                   </button>
                 </li>
                 <li>
-                  <Link to="/Wishlist" className="block w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2">
+                  <button
+                    className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selectedSection === 'wishlist' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}
+                    onClick={() => { setSelectedSection('wishlist'); setSidebarOpen(false); }}
+                  >
                     <FaHeart className="text-rose-400" />
                     Wishlist
-                  </Link>
+                  </button>
                 </li>
                 <li>
-                  <Link to="/Cart" className="block w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2">
+                  <button
+                    className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selectedSection === 'cart' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}
+                    onClick={() => { setSelectedSection('cart'); setSidebarOpen(false); }}
+                  >
                     <FaShoppingCart className="text-rose-400" />
                     Cart
-                  </Link>
+                  </button>
                 </li>
                 <li>
                   <button
@@ -706,6 +720,14 @@ function Profile() {
                   ))}
                 </div>
               )}
+            </div>
+          ) : selectedSection === 'wishlist' ? (
+            <div className="max-w-4xl mx-auto">
+              <Wishlist hideHeader />
+            </div>
+          ) : selectedSection === 'cart' ? (
+            <div className="max-w-4xl mx-auto">
+              <Cart hideHeader />
             </div>
           ) : selectedSection === 'settings' ? (
             <div className="max-w-md md:max-w-2xl mx-auto bg-gray-50 rounded-lg shadow p-6">
