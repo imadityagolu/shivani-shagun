@@ -143,8 +143,8 @@ function ProductCard({ product, BACKEND_URL }) {
         </div>
       )}
       <div className="text-gray-500 text-sm mb-2 text-center w-full truncate">{product.category || ''}</div>
-      <div className="text-gray-700 font-semibold mb-1">MRP: ₹{product.mrp || ''}</div>
-      <div className="text-gray-600 text-xs mb-2 text-center w-full truncate">{product.description || ''}</div>
+      <div className="text-gray-700 font-semibold mb-1 text-red-500">Price: ₹<span className='line-through'> {(product.rate)*3}</span></div>
+      <div className="text-gray-700 text-xl font-bold mb-1 text-green-500">MRP: ₹{product.mrp || ''}</div>
     </Link>
   );
 }

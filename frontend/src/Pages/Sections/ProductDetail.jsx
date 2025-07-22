@@ -4,6 +4,7 @@ import Header from '../Header';
 import { toast } from 'react-toastify';
 import { FaHeart, FaShoppingCart, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import Footer from '../Footer';
+import { FaStar } from 'react-icons/fa';
 
 function ProductDetail() {
   const { id } = useParams();
@@ -199,9 +200,284 @@ function ProductDetail() {
           <span className="font-bold">Note:</span>
           Product are returnable within 24 hours of delivery.
         </div>
+        {/* Feedback Forum */}
+        <div className="bg-white border border-gray-200 rounded-lg shadow p-4 mt-6 max-w-2xl mx-auto">
+          <h3 className="text-lg font-bold text-rose-500 mb-2">Feedbacks & Ratings !!</h3>
+          <FeedbackFormWithEligibility productId={id} />
+          <FeedbackList productId={id} />
+        </div>
+        {/* Related Products */}
+        {product && (
+          <RelatedProducts category={product.category} price={product.mrp} excludeId={product._id} />
+        )}
       </div>
       <Footer />
     </>
+  );
+}
+
+// FeedbackForm component
+function FeedbackForm({ productId }) {
+  const [rating, setRating] = useState(0);
+  const [hover, setHover] = useState(0);
+  const [feedback, setFeedback] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!rating || !feedback.trim()) {
+      toast.error('Please provide both rating and feedback.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+      const res = await fetch(`${BACKEND_URL}/api/product/${productId}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating, feedback })
+      });
+      if (res.ok) {
+        setSubmitted(true);
+        setFeedback('');
+        setRating(0);
+        toast.success('Thank you for your feedback!');
+      } else {
+        const data = await res.json();
+        toast.error(data.message || 'Failed to submit feedback');
+      }
+    } catch (err) {
+      toast.error('Server error');
+    }
+    setSubmitting(false);
+  };
+
+  if (submitted) {
+    return <div className="text-green-600 font-semibold py-2">Thank you for your feedback!</div>;
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium text-gray-700">Your Rating:</span>
+        {[1,2,3,4,5].map(star => (
+          <button
+            type="button"
+            key={star}
+            onClick={() => setRating(star)}
+            onMouseEnter={() => setHover(star)}
+            onMouseLeave={() => setHover(0)}
+            className="focus:outline-none"
+          >
+            <FaStar className={
+              `w-5 h-5 ${star <= (hover || rating) ? 'text-yellow-400' : 'text-gray-300'}`
+            } />
+          </button>
+        ))}
+      </div>
+      <textarea
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-400 text-sm"
+        rows={3}
+        placeholder="Write your feedback here..."
+        value={feedback}
+        onChange={e => setFeedback(e.target.value)}
+        required
+        disabled={submitting}
+      />
+      <button
+        type="submit"
+        className="self-end bg-rose-500 text-white px-6 py-2 rounded font-bold hover:bg-rose-600 transition disabled:opacity-60"
+        disabled={submitting}
+      >
+        {submitting ? 'Submitting...' : 'Submit Feedback'}
+      </button>
+    </form>
+  );
+}
+
+function FeedbackList({ productId }) {
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
+  useEffect(() => {
+    const fetchFeedbacks = async () => {
+      setLoading(true);
+      try {
+        const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+        const res = await fetch(`${BACKEND_URL}/api/product/${productId}/feedback`);
+        if (res.ok) {
+          const data = await res.json();
+          setFeedbacks(Array.isArray(data) ? data : []);
+        } else {
+          setFeedbacks([]);
+        }
+      } catch {
+        setFeedbacks([]);
+      }
+      setLoading(false);
+    };
+    if (productId) fetchFeedbacks();
+  }, [productId]);
+
+  if (loading) return <div className="text-gray-400 text-sm py-2">Loading feedbacks...</div>;
+  if (!feedbacks.length) return <div className="text-gray-400 text-sm py-2">No feedbacks yet.</div>;
+  const sortedFeedbacks = feedbacks.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const visibleFeedbacks = showAll ? sortedFeedbacks : sortedFeedbacks.slice(0, 3);
+  return (
+    <div className="mt-6">
+      <h4 className="text-md font-bold text-gray-700 mb-2">Customer Feedbacks</h4>
+      <div className="flex flex-col gap-3">
+        {visibleFeedbacks.map((fb, idx) => (
+          <div key={fb._id || idx} className="border border-gray-100 rounded-lg p-3 bg-gray-50">
+            <div className="flex items-center gap-2 mb-1">
+              {[1,2,3,4,5].map(star => (
+                <FaStar key={star} className={`w-4 h-4 ${star <= fb.rating ? 'text-yellow-400' : 'text-gray-300'}`} />
+              ))}
+              <span className="text-xs text-gray-400 ml-2">{new Date(fb.createdAt).toLocaleString()}</span>
+            </div>
+            <div className="text-gray-700 text-sm">{fb.feedback}</div>
+          </div>
+        ))}
+      </div>
+      {sortedFeedbacks.length > 3 && (
+        !showAll ? (
+          <button
+            className="mt-3 px-4 py-2 bg-rose-100 text-rose-600 rounded font-semibold hover:bg-rose-200 transition self-center"
+            onClick={() => setShowAll(true)}
+          >
+            Show All
+          </button>
+        ) : (
+          <button
+            className="mt-3 px-4 py-2 bg-gray-100 text-gray-600 rounded font-semibold hover:bg-gray-200 transition self-center"
+            onClick={() => setShowAll(false)}
+          >
+            Show Less
+          </button>
+        )
+      )}
+    </div>
+  );
+}
+
+// Only show feedback form if user has purchased and received (delivered) this product
+function FeedbackFormWithEligibility({ productId }) {
+  const [eligible, setEligible] = useState(false);
+  const [checking, setChecking] = useState(true);
+  useEffect(() => {
+    const checkEligibility = async () => {
+      setChecking(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setEligible(false);
+        setChecking(false);
+        return;
+      }
+      try {
+        const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+        const res = await fetch(`${BACKEND_URL}/api/customer/orders`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const orders = await res.json();
+          // Check for delivered order with this product
+          const found = Array.isArray(orders) && orders.some(order =>
+            order.status === 'delivered' &&
+            Array.isArray(order.products) && order.products.some(p => p._id === productId)
+          );
+          setEligible(found);
+        } else {
+          setEligible(false);
+        }
+      } catch {
+        setEligible(false);
+      }
+      setChecking(false);
+    };
+    checkEligibility();
+  }, [productId]);
+
+  if (checking) return <div className="text-gray-400 text-sm py-2">Checking eligibility...</div>;
+  if (!eligible) return null;
+  return <FeedbackForm productId={productId} />;
+}
+
+function RelatedProducts({ category, price, excludeId }) {
+  const [related, setRelated] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const fetchRelated = async () => {
+      setLoading(true);
+      try {
+        const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+        const res = await fetch(`${BACKEND_URL}/api/products`);
+        if (res.ok) {
+          const data = await res.json();
+          // Filter by category, price range, and exclude current product
+          const minPrice = price * 0.8;
+          const maxPrice = price * 1.2;
+          const filtered = data.filter(p =>
+            p._id !== excludeId &&
+            p.category === category &&
+            Number(p.mrp) >= minPrice && Number(p.mrp) <= maxPrice
+          ).slice(0, 4);
+          setRelated(filtered);
+        } else {
+          setRelated([]);
+        }
+      } catch {
+        setRelated([]);
+      }
+      setLoading(false);
+    };
+    if (category && price && excludeId) fetchRelated();
+  }, [category, price, excludeId]);
+
+  if (loading) return <div className="text-gray-400 text-sm py-2">Loading related products...</div>;
+  if (!related.length) return <div className="text-gray-400 text-sm py-2">No related products found.</div>;
+  return (
+    <div className="mt-8">
+      <h4 className="text-md font-bold text-gray-700 mb-4">Related Products</h4>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {related.map((p) => (
+          <RelatedProductCard key={p._id} product={p} BACKEND_URL={import.meta.env.VITE_BACKEND_URL} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RelatedProductCard({ product, BACKEND_URL }) {
+  const [imgIdx, setImgIdx] = useState(0);
+  const images = product.images && product.images.length > 0 ? product.images : [`/uploads/products/default-product-image.JPG`];
+  useEffect(() => {
+    if (images.length <= 1) return;
+    const interval = setInterval(() => {
+      setImgIdx(idx => (idx + 1) % images.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [images.length]);
+  useEffect(() => { setImgIdx(0); }, [product._id]);
+  return (
+    <Link to={`/sections/product/${product._id}`} className="bg-white rounded-xl shadow-lg flex flex-col items-center p-4 hover:shadow-2xl transition cursor-pointer">
+      <img
+        src={`${BACKEND_URL}${images[imgIdx]}`}
+        alt={product.product}
+        className="w-full h-64 object-contain rounded mb-3 bg-gray-50"
+      />
+      <h3 className="text-lg font-bold text-rose-500 mb-1 text-center w-full truncate">{product.product || 'No Name'}</h3>
+      {product.color && product.color.name && (
+        <div className="flex items-center gap-2 mb-1">
+          <span className="inline-block w-4 h-4 rounded-full border border-gray-300" style={{ backgroundColor: product.color.hex || '#ccc' }}></span>
+          <span className="text-xs text-gray-700 font-medium">{product.color.name}</span>
+        </div>
+      )}
+      <div className="text-gray-500 text-sm mb-2 text-center w-full truncate">{product.category || ''}</div>
+      <div className="text-gray-700 font-semibold mb-1 text-red-500">Price: ₹<span className='line-through'> {(product.rate)*3}</span></div>
+      <div className="text-gray-700 text-xl font-bold mb-1 text-green-500">MRP: ₹{product.mrp || ''}</div>
+      <div className="text-gray-600 text-xs mb-2 text-center w-full truncate">{product.description || ''}</div>
+    </Link>
   );
 }
 

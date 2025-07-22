@@ -4,7 +4,12 @@ import banner1 from '../images/banners/banner-1.png';
 import banner2 from '../images/banners/banner-2.png';
 import leh1 from '../images/store/leh-1.mp4';
 import leh2 from '../images/store/leh-2.mp4';
+import sareeImg from '../images/store/saree.JPG';
+import suteImg from '../images/store/sute.jpg';
+import chunniImg from '../images/store/chunni.jpg';
+import lehngaImg from '../images/store/lehnga.jpg';
 import Footer from './Footer';
+import { Link } from 'react-router-dom';
 
 function Home() {
   const images = [banner1, banner2];
@@ -71,18 +76,20 @@ function Home() {
           </svg>
         </button>
       </div>
-      {/* Card Sections */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 px-4 sm:px-8 py-8">
-        {[1,2,3,4].map((n) => (
-          <div key={n} className="bg-white rounded-xl shadow-lg flex flex-col items-center p-6 hover:shadow-2xl transition">
-            <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mb-4">
-              <span className="text-3xl text-rose-400">🛍️</span>
-            </div>
-            <h3 className="text-lg font-bold text-rose-500 mb-2">Card Title {n}</h3>
-            <p className="text-gray-500 text-center text-sm">This is a short description for card section {n}. You can customize this content as needed.</p>
-          </div>
-        ))}
+      
+      {/* Category Circles */}
+      <div className="flex flex-row justify-center gap-4 sm:gap-8 py-8 overflow-x-auto scrollbar-hide min-w-0 pl-0 pr-0 sm:pl-0 sm:pr-0 snap-x snap-mandatory">
+        <CategoryCircle to="/sections/lehnga" img={lehngaImg} label="Lehnga" isFirst />
+        <CategoryCircle to="/sections/saree" img={sareeImg} label="Saree" />
+        <CategoryCircle to="/sections/chunni" img={chunniImg} label="Chunni" />
+        <CategoryCircle to="/sections/sute" img={suteImg} label="Sute" isLast />
       </div>
+      <div className="flex justify-center mt-2 mb-8">
+        <Link to="/sections/allproduct" className="px-6 py-2 rounded-lg bg-rose-500 text-white font-bold text-base shadow hover:bg-rose-600 transition">
+          Show All Products
+        </Link>
+      </div>
+      
       {/* Video Section Title */}
       <h2 className="text-2xl sm:text-3xl font-bold text-rose-500 text-center mt-8 mb-4">Our latest Collections</h2>
       {/* Video Section */}
@@ -103,6 +110,24 @@ function Home() {
       </div>
       <Footer />
     </>
+  );
+}
+
+function CategoryCircle({ to, img, label, isFirst, isLast }) {
+  return (
+    <a
+      href={to}
+      className={
+        `flex flex-col items-center group min-w-[4.5rem] sm:min-w-[10rem] snap-center ` +
+        (isFirst ? 'ml-4 ' : '') +
+        (isLast ? 'mr-4 ' : '')
+      }
+    >
+      <div className="w-16 h-16 sm:w-32 sm:h-32 rounded-full bg-gray-100 shadow-lg flex items-center justify-center overflow-hidden border-4 border-rose-100 group-hover:border-rose-400 transition">
+        <img src={img} alt={label} className="object-cover w-full h-full max-w-[3.5rem] sm:max-w-none" />
+      </div>
+      <span className="mt-2 text-xs sm:mt-3 sm:text-lg font-bold text-rose-500 group-hover:text-rose-700 transition">{label}</span>
+    </a>
   );
 }
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FaUserCircle, FaBox, FaUser, FaHeart, FaShoppingCart, FaCog, FaBars, FaBell, FaEdit, FaMapMarkerAlt, FaPlus, FaCheckCircle } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import logo from '../../Images/logo.png';
+import logo from '../../Images/store/logo.png';
 import Wishlist from './Wishlist';
 import Cart from './Cart';
 

@@ -16,7 +16,7 @@ function Footer() {
         <div>
           <h3 className="text-lg font-bold text-rose-500 mb-3">Contact Us</h3>
           <p className="text-sm mb-1">Email: <a href="mailto:shivani.shagun007@gmail.com" className="text-rose-600 hover:underline">shivani.shagun007@gmail.com</a></p>
-          <p className="text-sm mb-1">Phone: <a href="tel:+91 9905 120 849" className="text-rose-600 hover:underline">+91 99999 99999</a></p>
+          <p className="text-sm mb-1">Phone: <a href="tel:+919905120849" className="text-rose-600 hover:underline">+91 9905 120 849</a></p>
           <p className="text-sm">Address: 1st Floor Gayatri Palace, Shadikpur Gulzarbagh,<br/>Patna City - 800007, Patna, Bihar, India.</p>
         </div>
         {/* Social Media */}
@@ -25,7 +25,7 @@ function Footer() {
           <div className="flex gap-4 mt-2">
             <a href="https://instagram.com/shivani_shagun" target="_blank" rel="noopener noreferrer" className="text-rose-500 hover:text-rose-700 text-2xl transition"><FaInstagram /></a>
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 text-2xl transition"><FaFacebook /></a>
-            <a href="https://wa.me/919999999999" target="_blank" rel="noopener noreferrer" className="text-green-500 hover:text-green-700 text-2xl transition"><FaWhatsapp /></a>
+            <a href="https://wa.me/919905120849" target="_blank" rel="noopener noreferrer" className="text-green-500 hover:text-green-700 text-2xl transition"><FaWhatsapp /></a>
           </div>
         </div>
       </div>
