@@ -121,10 +121,10 @@ function Wishlist() {
                   <tr key={p._id} className="hover:bg-rose-50 transition">
                     <td className="px-4 py-3">
                       <Link to={`/sections/product/${p._id}`}>
-                        {p.image ? (
-                          <img src={`${import.meta.env.VITE_BACKEND_URL}${p.image}`} alt={p.product} className="w-20 h-20 object-contain rounded bg-gray-50 border" />
+                        {(p.image || (p.images && p.images[0])) ? (
+                          <img src={`${import.meta.env.VITE_BACKEND_URL}${p.image || (p.images && p.images[0])}`} alt={p.product} className="w-20 h-20 object-contain rounded bg-gray-50 border" />
                         ) : (
-                          <div className="w-20 h-20 bg-gray-100 flex items-center justify-center text-gray-400">No Image</div>
+                          <img src={`${import.meta.env.VITE_BACKEND_URL}/uploads/products/default-product-image.JPG`} alt="Default" className="w-20 h-20 object-contain rounded bg-gray-50 border" />
                         )}
                       </Link>
                     </td>

@@ -64,10 +64,13 @@ function Order() {
             product: p.product,
             category: p.category,
             mrp: p.mrp,
-            image: p.image
+            image: p.image,
+            images: p.images
           })),
           total,
-          address: profile?.address,
+          customer: profile?.name,
+          mobile: profile?.mobile,
+          address: [profile?.address?.street, profile?.address?.city, profile?.address?.state, profile?.address?.pincode, profile?.address?.country].filter(Boolean).join(', '),
           paymentMethod: 'Cash on Delivery'
         })
       });
@@ -126,10 +129,10 @@ function Order() {
                 {cart.map((p) => (
                   <tr key={p._id} className="border-b">
                     <td className="px-2 py-2">
-                      {p.image ? (
-                        <img src={`${import.meta.env.VITE_BACKEND_URL}${p.image}`} alt={p.product} className="w-12 h-12 object-contain rounded bg-gray-50 border" />
+                      {(p.image || (p.images && p.images[0])) ? (
+                        <img src={`${import.meta.env.VITE_BACKEND_URL}${p.image || (p.images && p.images[0])}`} alt={p.product} className="w-12 h-12 object-contain rounded bg-gray-50 border" />
                       ) : (
-                        <div className="w-12 h-12 bg-gray-100 flex items-center justify-center text-gray-400">No Image</div>
+                        <img src={`${import.meta.env.VITE_BACKEND_URL}/uploads/products/default-product-image.JPG`} alt="Default" className="w-12 h-12 object-contain rounded bg-gray-50 border" />
                       )}
                     </td>
                     <td className="px-2 py-2 font-bold text-rose-600 text-xs sm:text-sm">{p.product || 'No Name'}</td>

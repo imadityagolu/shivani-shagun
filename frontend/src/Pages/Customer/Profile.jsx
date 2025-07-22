@@ -629,10 +629,10 @@ function Profile() {
                               {order.products.map((p, idx) => (
                                 <tr key={p._id || idx} className="border-b last:border-0">
                                   <td className="px-2 py-2">
-                                    {p.image ? (
-                                      <img src={`${import.meta.env.VITE_BACKEND_URL}${p.image}`} alt={p.product} className="w-10 h-10 object-contain rounded bg-gray-50 border" />
+                                    {(p.image || (p.images && p.images[0])) ? (
+                                      <img src={`${import.meta.env.VITE_BACKEND_URL}${p.image || (p.images && p.images[0])}`} alt={p.product} className="w-10 h-10 object-contain rounded bg-gray-50 border" />
                                     ) : (
-                                      <div className="w-10 h-10 bg-gray-100 flex items-center justify-center text-gray-400">No Image</div>
+                                      <img src={`${import.meta.env.VITE_BACKEND_URL}/uploads/products/default-product-image.JPG`} alt="Default" className="w-10 h-10 object-contain rounded bg-gray-50 border" />
                                     )}
                                   </td>
                                   <td className="px-2 py-2 font-bold text-rose-600 text-xs sm:text-sm">{p.product || 'No Name'}</td>
@@ -655,7 +655,7 @@ function Profile() {
                           </div>
                         </div>
                         <div className="mb-2 text-sm text-gray-700 mt-4">
-                          <span className="font-semibold">Address:</span> {order.address?.street}, {order.address?.city}, {order.address?.state} {order.address?.pincode}, {order.address?.country}
+                          <span className="font-semibold">Address:</span> {order.address}
                         </div>
                         {order.status === 'cancelled' ? (
                           <div className="w-full flex justify-center items-center mt-6 mb-2">
@@ -682,9 +682,9 @@ function Profile() {
                                     style={{ left: `${(idx / (ORDER_STATUSES.length - 1)) * 100}%`, position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)' }}
                                   >
                                     <div className={`w-6 h-6 flex items-center justify-center rounded-full border-2 text-xs font-bold
-                                      ${isCompleted ? 'bg-green-500 border-green-500 text-white' : isCurrent ? 'bg-rose-500 border-rose-500 text-white' : 'bg-gray-200 border-gray-300 text-gray-400'}`}
+                                      ${isCompleted || isCurrent ? 'bg-green-500 border-green-500 text-white' : 'bg-gray-200 border-gray-300 text-gray-400'}`}
                                     >
-                                      {isCompleted ? <FaCheckCircle className="w-5 h-5" /> : idx + 1}
+                                      {(isCompleted || isCurrent) ? <FaCheckCircle className="w-5 h-5" /> : idx + 1}
                                     </div>
                                     <span className={`mt-1 text-[10px] sm:text-xs text-center w-20 whitespace-nowrap ${isCurrent ? 'text-rose-600 font-bold' : isCompleted ? 'text-green-600' : 'text-gray-400'}`}>{status}</span>
                                   </div>

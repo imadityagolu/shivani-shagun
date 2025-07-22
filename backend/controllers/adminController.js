@@ -140,19 +140,30 @@ exports.updateOrderStatus = async (req, res) => {
     const { orderId } = req.params;
     const { status } = req.body;
     if (!status) return res.status(400).json({ message: 'Status is required' });
-    const order = await Order.findByIdAndUpdate(orderId, { status }, { new: true });
+    let update = { status };
+    // If marking as complete for a shop order with due, add due to paid and set due to 0
+    if (status === 'complete') {
+      const order = await Order.findById(orderId);
+      if (order && order.mode === 'shop' && order.due > 0) {
+        update.paid = Number(order.paid) + Number(order.due);
+        update.due = 0;
+      }
+    }
+    const order = await Order.findByIdAndUpdate(orderId, update, { new: true });
     if (!order) return res.status(404).json({ message: 'Order not found' });
-    // Send notification to customer
-    const customer = await Customer.findById(order.customer);
-    if (customer) {
-      const newNotification = {
-        title: 'Order Status Updated',
-        message: `Your order (${order._id}) status has been updated to: ${status}.`,
-        timestamp: new Date(),
-        read: false
-      };
-      customer.notifications.unshift(newNotification);
-      await customer.save();
+    // Send notification to customer (only for website orders)
+    if (order.mode === 'website' && order.mobile) {
+      const customer = await Customer.findOne({ mobile: order.mobile });
+      if (customer) {
+        const newNotification = {
+          title: 'Order Status Updated',
+          message: `Your order (${order._id}) status has been updated to: ${status}.`,
+          timestamp: new Date(),
+          read: false
+        };
+        customer.notifications.unshift(newNotification);
+        await customer.save();
+      }
     }
     res.json({ message: 'Order status updated', order });
   } catch (err) {
@@ -179,6 +190,42 @@ exports.markAllNotificationsAsRead = async (req, res) => {
     await admin.save();
     res.json({ message: 'All notifications marked as read' });
   } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+}; 
+
+exports.createOrder = async (req, res) => {
+  try {
+    const { products, total, paymentMethod, paid, due, customer, mobile, address } = req.body;
+    if (!products || !Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({ message: 'No products in order' });
+    }
+    if (!customer || !mobile || !address) {
+      return res.status(400).json({ message: 'Customer name, mobile, and address are required' });
+    }
+    // Ensure quantity is set for each product
+    const productsWithQty = products.map(p => ({ ...p, quantity: p.quantity ? Number(p.quantity) : 1 }));
+    // Determine status for shop orders
+    let status = 'due';
+    if (Number(total) === Number(paid)) {
+      status = 'complete';
+    }
+    const order = await Order.create({
+      customer,
+      mobile,
+      address,
+      products: productsWithQty,
+      total,
+      paymentMethod,
+      mode: 'shop',
+      paid,
+      due,
+      status
+    });
+    res.json({ message: 'Order created successfully', order });
+  } catch (err) {
+    console.error('Order creation error:', err);
+    console.error('Request body:', req.body);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 }; 

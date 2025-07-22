@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FaUserCircle, FaBars, FaBell, FaBox, FaUser, FaHeart, FaShoppingCart, FaCog, FaPlus, FaEdit, FaMapMarkerAlt, FaListAlt } from 'react-icons/fa';
+import { FaUserCircle, FaBars, FaBell, FaBox, FaUser, FaHeart, FaShoppingCart, FaCog, FaPlus, FaEdit, FaMapMarkerAlt, FaListAlt, FaPrint } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import AddProduct from './Components/AddProduct';
 import ListAllProducts from './Components/ListAllProducts';
@@ -140,18 +140,21 @@ function AdminDashboard() {
               </button>
             </li>
             <li>
-              <button onClick={() => setSelected('bill')} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'bill' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
-                <FaHeart className="text-rose-400 w-4 h-4 mr-2" /> Generate Bill
+              <button onClick={() => setSelected('budget')} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'budget' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
+                <FaMapMarkerAlt className="text-rose-400 w-4 h-4 mr-2" /> Budget
               </button>
             </li>
             <li>
-              <button onClick={() => setSelected('budget')} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'budget' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
-                <FaMapMarkerAlt className="text-rose-400 w-4 h-4 mr-2" /> Show Monthly Budget
+              <span className='px-4'>Shop :-</span>
+            </li>
+            <li>
+              <button onClick={() => setSelected('bill')} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'bill' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
+                <FaPrint className="text-rose-400 w-4 h-4 mr-2" /> Generate Bill
               </button>
             </li>
             <li>
               <Link to="/Home" className={`w-full flex px-4 py-2 text-left rounded-md focus:outline-none focus:ring-2 focus:ring-rose-500`}>
-                <FaShoppingCart className="text-rose-400 w-4 h-4 mr-2" /> Go to Website
+                Website :-
               </Link>
             </li>
             <li>
@@ -202,18 +205,21 @@ function AdminDashboard() {
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => { setSelected('bill'); setSidebarOpen(false); }} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'bill' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
-                    <FaHeart className="text-rose-400 w-4 h-4 mr-2" /> Generate Bill
+                  <button onClick={() => { setSelected('budget'); setSidebarOpen(false); }} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'budget' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
+                    <FaMapMarkerAlt className="text-rose-400 w-4 h-4 mr-2" /> Budget
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => { setSelected('budget'); setSidebarOpen(false); }} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'budget' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
-                    <FaMapMarkerAlt className="text-rose-400 w-4 h-4 mr-2" /> Show Monthly Budget
+                  <span className='px-4'>Shop :-</span>
+                </li>
+                <li>
+                  <button onClick={() => { setSelected('bill'); setSidebarOpen(false); }} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'bill' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
+                    <FaPrint className="text-rose-400 w-4 h-4 mr-2" /> Generate Bill
                   </button>
                 </li>
                 <li>
                   <Link to="/Home" className={`w-full flex px-4 py-2 text-left rounded-md focus:outline-none focus:ring-2 focus:ring-rose-500`}>
-                    <FaShoppingCart className="text-rose-400 w-4 h-4 mr-2" /> Go to Website
+                    Website :-
                   </Link>
                 </li>
                 <li>

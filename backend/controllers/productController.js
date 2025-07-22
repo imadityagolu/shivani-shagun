@@ -242,13 +242,6 @@ exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
-    // Increment viewedCount in ProductReport
-    const { ProductReport } = require('../models/Product');
-    await ProductReport.findOneAndUpdate(
-      { product: req.params.id },
-      { $inc: { viewedCount: 1 } },
-      { upsert: true }
-    );
     res.json(product);
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });

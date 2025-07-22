@@ -107,13 +107,6 @@ exports.addToWishlist = async (req, res) => {
       customer.wishlist.push(productId);
       await customer.save();
     }
-    if (productId) {
-      await ProductReport.findOneAndUpdate(
-        { product: productId },
-        { $inc: { wishlistCount: 1 } },
-        { upsert: true }
-      );
-    }
     res.json({ message: 'Added to wishlist', wishlist: customer.wishlist });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -130,13 +123,6 @@ exports.addToCart = async (req, res) => {
     if (!customer.cart.includes(productId)) {
       customer.cart.push(productId);
       await customer.save();
-    }
-    if (productId) {
-      await ProductReport.findOneAndUpdate(
-        { product: productId },
-        { $inc: { cartCount: 1 } },
-        { upsert: true }
-      );
     }
     res.json({ message: 'Added to cart', cart: customer.cart });
   } catch (err) {
@@ -350,19 +336,32 @@ exports.removeFromWishlist = async (req, res) => {
 
 exports.placeOrder = async (req, res) => {
   try {
-    const customer = await Customer.findById(req.user.id);
-    if (!customer) return res.status(404).json({ message: 'Customer not found' });
-    const { products, total, address, paymentMethod } = req.body;
+    const user = await Customer.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'Customer not found' });
+    const { products, total, paymentMethod, customer, mobile, address } = req.body;
     if (!products || !Array.isArray(products) || products.length === 0) {
       return res.status(400).json({ message: 'No products in order' });
     }
-    // Save order
+    if (!customer || !mobile || !address) {
+      return res.status(400).json({ message: 'Customer name, mobile, and address are required' });
+    }
+    // Always set quantity to 1 for website orders and include images
+    const productsWithQty = products.map(p => ({
+      ...p,
+      quantity: 1,
+      images: p.images || [],
+      image: p.image || (p.images && p.images[0]) || ''
+    }));
     const order = await Order.create({
-      customer: customer._id,
-      products,
-      total,
+      customer,
+      mobile,
       address,
-      paymentMethod
+      products: productsWithQty,
+      total,
+      paymentMethod,
+      mode: 'website',
+      paid: total,
+      due: 0
     });
     // Add notification to customer
     const productList = products.map(p => `${p.product} (₹${p.mrp})`).join(', ');
@@ -372,30 +371,25 @@ exports.placeOrder = async (req, res) => {
       timestamp: new Date(),
       read: false
     };
-    customer.notifications.unshift(notification);
+    user.notifications.unshift(notification);
     // Send notification to admin
     const admin = await Admin.findOne();
     if (admin) {
       admin.notifications.unshift({
         title: 'New Order Placed',
-        message: `Order (${order._id}) placed by customer ${customer.name}.`,
+        message: `Order (${order._id}) placed by customer ${customer}.`,
         timestamp: new Date(),
         read: false
       });
       await admin.save();
     }
     // Clear the user's cart
-    customer.cart = [];
-    await customer.save();
+    user.cart = [];
+    await user.save();
     // Decrease quantity of each product by 1
     for (const p of products) {
       if (p._id) {
         await Product.findByIdAndUpdate(p._id, { $inc: { quantity: -1 } });
-        await ProductReport.findOneAndUpdate(
-          { product: p._id },
-          { $inc: { orderedCount: 1 } },
-          { upsert: true }
-        );
       }
     }
     res.json({ message: 'Order placed successfully', order });
@@ -406,8 +400,9 @@ exports.placeOrder = async (req, res) => {
 
 exports.getMyOrders = async (req, res) => {
   try {
-    const Order = require('../models/Order');
-    const orders = await Order.find({ customer: req.user.id }).sort({ createdAt: -1 });
+    const user = await Customer.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'Customer not found' });
+    const orders = await Order.find({ mobile: user.mobile, mode: 'website' }).sort({ createdAt: -1 });
     res.json(orders);
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -418,7 +413,10 @@ exports.cancelOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
     const customerId = req.user.id;
-    const order = await Order.findOne({ _id: orderId, customer: customerId });
+    const user = await Customer.findById(customerId);
+    if (!user) return res.status(404).json({ message: 'Customer not found' });
+    // Find order by _id and mobile
+    const order = await Order.findOne({ _id: orderId, mobile: user.mobile });
     if (!order) return res.status(404).json({ message: 'Order not found' });
     if (order.status === 'out for delivery' || order.status === 'delivered' || order.status === 'cancelled') {
       return res.status(400).json({ message: 'Order cannot be cancelled at this stage' });
@@ -432,22 +430,21 @@ exports.cancelOrder = async (req, res) => {
       }
     }
     // Send notification to customer
-    const customer = await Customer.findById(customerId);
-    if (customer) {
-      customer.notifications.unshift({
+    if (user) {
+      user.notifications.unshift({
         title: 'Order Cancelled',
         message: `Your order (${order._id}) has been cancelled.`,
         timestamp: new Date(),
         read: false
       });
-      await customer.save();
+      await user.save();
     }
     // Send notification to admin
     const admin = await Admin.findOne();
     if (admin) {
       admin.notifications.unshift({
         title: 'Order Cancelled',
-        message: `Order (${order._id}) by customer ${customer?.name || ''} has been cancelled.`,
+        message: `Order (${order._id}) by customer ${user?.name || ''} has been cancelled.`,
         timestamp: new Date(),
         read: false
       });

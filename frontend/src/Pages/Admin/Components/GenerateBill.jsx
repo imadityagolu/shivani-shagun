@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FaEye } from 'react-icons/fa';
+import { FaPrint } from 'react-icons/fa';
 import { PDFViewer, Page, Text, View, Document, StyleSheet, Image } from '@react-pdf/renderer';
 // import BillPDF from './BillPDF';
 import { toast } from 'react-toastify';
@@ -91,19 +91,22 @@ function GenerateBill() {
       return;
     }
     const orderPayload = {
-      customer: null,
-      products: selectedProducts.map(p => ({
-        _id: p._id,
-        product: p.product,
-        category: p.category,
-        mrp: p.mrp,
-        image: p.images && p.images[0]
-      })),
+      customer: customer.name,
+      mobile: customer.mobile,
+      address: customer.address ? customer.address : 'Patna,Bihar',
+      products: selectedProducts.map(p => {
+        const prod = {
+          product: p.product,
+          category: p.category,
+          mrp: p.mrp,
+          image: p.images && p.images[0]
+        };
+        if (p._id && /^[a-f\d]{24}$/i.test(p._id)) {
+          prod._id = p._id;
+        }
+        return prod;
+      }),
       total,
-      address: {
-        ...customer,
-        address: customer.address ? customer.address : 'Patna,Bihar'
-      },
       paymentMethod,
       paid,
       due
@@ -119,17 +122,17 @@ function GenerateBill() {
       });
       const data = await res.json();
       if (res.ok) {
+        setShowPDF(false); // Close the modal before clearing order data to prevent PDFViewer crash
         setOrderData({ ...orderPayload, _id: data.order?._id || Date.now() });
-        setShowPDF(true);
         setSelectedProducts([]);
         setCustomer({ name: '', address: '', mobile: '' });
         setPaid('');
-        setDue('');
+        toast.success('Order placed successfully!');
       } else {
-        alert(data.message || 'Order failed');
+        toast.error(data.message || 'Order failed');
       }
     } catch (err) {
-      alert('Server error');
+      toast.error(err?.message || 'Server error');
     }
   };
 
@@ -224,13 +227,13 @@ function GenerateBill() {
       headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
       logo: { width: 48, height: 48, marginRight: 16 },
       heading: { fontSize: 26, color: '#e11d48', fontWeight: 'bold', marginBottom: 2, letterSpacing: 1 },
-      date: { fontSize: 11, color: '#888', marginLeft: 'auto', marginTop: 8 },
+      date: { fontSize: 11, color: '#888', textAlign: 'right' },
       divider: { height: 2, backgroundColor: '#e11d48', marginVertical: 10, marginBottom: 18 },
       infoRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 18 },
       infoCol: { flex: 1, padding: 10, backgroundColor: '#f9fafb', borderRadius: 6, marginRight: 8 },
       infoColRight: { flex: 1, padding: 10, backgroundColor: '#f9fafb', borderRadius: 6, marginLeft: 8 },
-      infoLabel: { color: '#e11d48', fontWeight: 'bold', marginBottom: 2 },
-      infoValue: { color: '#222', marginBottom: 6 },
+      infoLabel: { color: '#e11d48', fontWeight: 'bold', fontSize: 12, marginRight: 4 },
+      infoValue: { color: '#222', fontSize: 12 },
       table: { display: 'table', width: 'auto', marginBottom: 18, border: '1px solid #eee', borderRadius: 4, overflow: 'hidden' },
       tableRow: { flexDirection: 'row' },
       tableCell: { flex: 1, padding: 7, borderRight: '1px solid #eee', borderBottom: '1px solid #eee', fontSize: 12 },
@@ -248,11 +251,8 @@ function GenerateBill() {
       small: { fontSize: 10, color: '#888', marginTop: 24, textAlign: 'center' },
       compGenRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, marginTop: 2 },
       compGenBill: { fontSize: 11, color: '#888', textAlign: 'left', fontStyle: 'italic', letterSpacing: 0.5 },
-      date: { fontSize: 11, color: '#888', textAlign: 'right' },
       infoGrid: { display: 'flex', flexDirection: 'row', flexWrap: 'wrap', marginBottom: 18, gap: 0 },
       infoItem: { width: '50%', marginBottom: 6, paddingRight: 8, flexDirection: 'row', alignItems: 'center' },
-      infoLabel: { color: '#e11d48', fontWeight: 'bold', fontSize: 12, marginRight: 4 },
-      infoValue: { color: '#222', fontSize: 12 }
     });
     // Calculate due for PDF
     const due = Math.max(0, order.total - Number(order.paid || 0));
@@ -278,16 +278,18 @@ function GenerateBill() {
           <View style={styles.divider} />
           <View style={styles.infoGrid}>
             <View style={styles.infoItem}><Text style={styles.infoLabel}>Customer: </Text><Text style={styles.infoValue}>{order.address?.name || ''}</Text></View>
-            <View style={styles.infoItem}><Text style={styles.infoLabel}>Address: </Text><Text style={styles.infoValue}>{order.address?.address || ''}</Text></View>
+            <View style={styles.infoItem}><Text style={styles.infoLabel}></Text><Text style={styles.infoValue}></Text></View>
             <View style={styles.infoItem}><Text style={styles.infoLabel}>Mobile: </Text><Text style={styles.infoValue}>{order.address?.mobile || ''}</Text></View>
+            <View style={styles.infoItem}><Text style={styles.infoLabel}></Text><Text style={styles.infoValue}></Text></View>
+            <View style={styles.infoItem}><Text style={styles.infoLabel}>Address: </Text><Text style={styles.infoValue}>{order.address?.address || ''}</Text></View>
           </View>
           <View style={styles.table}>
             <View style={[styles.tableRow, styles.tableHeader]}>
               <Text style={styles.tableCellProduct}>Product</Text>
               <Text style={styles.tableCell}>Category</Text>
-              <Text style={styles.tableCell}>MRP (₹)</Text>
+              <Text style={styles.tableCell}>MRP</Text>
               <Text style={styles.tableCell}>Qty</Text>
-              <Text style={styles.tableCell}>Total (₹)</Text>
+              <Text style={styles.tableCell}>Total</Text>
             </View>
             {order.products.map((p, i) => (
               <View style={[styles.tableRow, i % 2 === 1 ? styles.tableAlt : null]} key={i}>
@@ -319,8 +321,7 @@ function GenerateBill() {
 
   return (
     <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-6 mt-6">
-      <h1 className="text-3xl font-bold text-center text-rose-500 mb-2">shivani shagun</h1>
-      <h2 className="text-xl font-semibold text-center text-gray-700 mb-6">bill of the products</h2>
+      <h2 className="text-xl font-semibold text-center text-gray-700 mb-6">Generate Bill of the products</h2>
       {/* Customer Details */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <input name="name" value={customer.name} onChange={handleCustomerChange} placeholder="Customer Name" className="px-4 py-2 border rounded w-full" required />
@@ -483,12 +484,9 @@ function GenerateBill() {
           <div className="font-bold text-lg">Total: ₹{total}</div>
         </div>
       </div>
-      <div className="flex gap-2">
-        <button className="bg-rose-500 text-white px-6 py-2 rounded font-bold hover:bg-rose-600 w-full flex items-center justify-center gap-2" onClick={handlePlaceOrder}>
-          Place Order
-        </button>
-        <button className="bg-gray-200 text-rose-500 px-4 py-2 rounded font-bold hover:bg-gray-300 flex items-center justify-center gap-2" onClick={handlePreview} title="Preview Bill">
-          <FaEye /> Preview
+      <div className="flex justify-center my-6">
+        <button className="bg-rose-500 text-white px-8 py-3 rounded-lg font-bold text-lg hover:bg-rose-600 flex items-center justify-center gap-3 shadow-lg transition-all duration-200" onClick={handlePreview} title="Preview Bill">
+          <FaPrint className="text-2xl" /> Generate Bill
         </button>
       </div>
       {/* PDF Preview Popup */}
@@ -497,11 +495,14 @@ function GenerateBill() {
           <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full relative">
             <button className="absolute top-2 right-2 text-2xl text-gray-400 hover:text-rose-500" onClick={() => setShowPDF(false)}>&times;</button>
             <h2 className="text-xl font-bold mb-4 text-center">Bill Preview (PDF)</h2>
-            <div className="h-[600px] border mb-4 bg-white">
+            <div className="h-[450px] border mb-4 bg-white">
               <PDFViewer width="100%" height="100%">
                 <BillPDF order={orderData} />
               </PDFViewer>
             </div>
+            <button className="bg-rose-500 text-white px-6 py-2 rounded font-bold hover:bg-rose-600 w-full flex items-center justify-center gap-2 mt-2" onClick={handlePlaceOrder}>
+              Place Order
+            </button>
           </div>
         </div>
       )}

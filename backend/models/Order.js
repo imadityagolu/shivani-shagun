@@ -1,26 +1,26 @@
 const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
-  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
+  customer: { type: String, required: true },
+  mobile: { type: String, required: true },
+  address: { type: String, required: true },
   products: [
     {
       _id: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
       product: String,
       category: String,
       mrp: Number,
-      image: String
+      image: String,
+      images: [String],
+      quantity: { type: Number, default: 1 }
     }
   ],
   total: { type: Number, required: true },
-  address: {
-    street: String,
-    city: String,
-    state: String,
-    pincode: String,
-    country: String
-  },
   paymentMethod: { type: String, required: true },
+  mode: { type: String, enum: ['website', 'shop'], default: 'website' },
   status: { type: String, default: 'order placed' },
+  paid: { type: Number, default: 0 },
+  due: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
 });
 

@@ -84,6 +84,7 @@ app.get('/api/customer/orders', auth('customer'), customerController.getMyOrders
 app.get('/api/admin/orders', auth('admin'), adminController.getAllOrders);
 app.patch('/api/admin/orders/:orderId/status', auth('admin'), adminController.updateOrderStatus);
 app.patch('/api/customer/orders/:orderId/cancel', auth('customer'), customerController.cancelOrder);
+app.post('/api/admin/orders', auth('admin'), adminController.createOrder);
 
 // JWT auth middleware
 function auth(role) {
