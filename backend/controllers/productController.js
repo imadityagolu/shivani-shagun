@@ -25,8 +25,8 @@ function generate8DigitId() {
 
 exports.addProduct = async (req, res) => {
   try {
-    const { seller, product, description, category, color, quantity, rate, mrp, date, images } = req.body;
-    if (!seller || !product || !description || !category || !color || !quantity || !rate || !mrp || !date || !images) {
+    let { seller, product, description, category, color, quantity, rate, mrp, date, images } = req.body;
+    if (!seller || !product || !description || !category || !color || !quantity || !rate || !mrp || !images) {
       return res.status(400).json({ message: 'All fields are required.' });
     }
     
@@ -40,7 +40,19 @@ exports.addProduct = async (req, res) => {
       return res.status(400).json({ message: 'At least one image is required.' });
     }
     
-    const newProduct = new Product({ seller, product, description, category, color, quantity, rate, mrp, date, images });
+    // Parse date to real Date object if provided, else use now
+    let dateObj = Date.now();
+    if (date) {
+      // Accept ISO, or dd-mm-yyyy
+      if (typeof date === 'string' && date.includes('-') && date.split('-').length === 3) {
+        // dd-mm-yyyy
+        const [dd, mm, yyyy] = date.split('-');
+        dateObj = new Date(`${yyyy}-${mm}-${dd}T00:00:00.000Z`);
+      } else if (!isNaN(Date.parse(date))) {
+        dateObj = new Date(date);
+      }
+    }
+    const newProduct = new Product({ seller, product, description, category, color, quantity, rate, mrp, date: dateObj, images });
     await newProduct.save();
     res.status(201).json({ message: 'Product added successfully.' });
   } catch (err) {

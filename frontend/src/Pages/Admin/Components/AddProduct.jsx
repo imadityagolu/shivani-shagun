@@ -424,8 +424,8 @@ function AddProduct() {
               required
             >
               <option value="">Select Category</option>
-              <option value="Lehnga">Lehnga</option>
               <option value="Saree">Saree</option>
+              <option value="Lehnga">Lehnga</option>
               <option value="Chunni">Chunni</option>
               <option value="Sute">Sute</option>
               <option value="Others">Others</option>
@@ -485,11 +485,6 @@ function AddProduct() {
               </div>
             )}
           </div>
-          {/* Quantity */}
-          <div className="col-span-1 flex flex-col gap-2">
-            <label className="flex items-center gap-2 text-gray-700 font-semibold mb-1"><FaSortNumericUp className="text-rose-400" /> Quantity</label>
-            <input type="number" name="quantity" value={form.quantity} onChange={handleChange} placeholder="Quantity" className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm" required min="1" />
-          </div>
           {/* Rate */}
           <div className="col-span-1 flex flex-col gap-2">
             <label className="flex items-center gap-2 text-gray-700 font-semibold mb-1"><FaRupeeSign className="text-rose-400" /> Rate (cost price)</label>
@@ -499,6 +494,11 @@ function AddProduct() {
           <div className="col-span-1 flex flex-col gap-2">
             <label className="flex items-center gap-2 text-gray-700 font-semibold mb-1"><FaRupeeSign className="text-rose-400" /> MRP (selling price)</label>
             <input type="number" name="mrp" value={form.mrp} onChange={handleChange} placeholder="MRP" className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm" required min="1" />
+          </div>
+          {/* Quantity */}
+          <div className="col-span-1 flex flex-col gap-2">
+            <label className="flex items-center gap-2 text-gray-700 font-semibold mb-1"><FaSortNumericUp className="text-rose-400" /> Quantity</label>
+            <input type="number" name="quantity" value={form.quantity} onChange={handleChange} placeholder="Quantity" className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm" required min="1" />
           </div>
 
           {/* Images */}

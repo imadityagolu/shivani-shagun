@@ -12,7 +12,7 @@ const productSchema = new mongoose.Schema({
   quantity: { type: Number, required: true },
   rate: { type: Number, required: true },
   mrp: { type: Number, required: true },
-  date: { type: String, required: true }, // Store as dd-mm-yyyy string
+  date: { type: Date, required: true, default: Date.now },
   images: [{ type: String, required: true }] // Store array of image URLs
 });
 

@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { FaHeart, FaShoppingCart, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import Footer from '../Footer';
 import { FaStar } from 'react-icons/fa';
+import { CiShoppingTag } from "react-icons/ci";
 
 function ProductDetail() {
   const { id } = useParams();
@@ -159,7 +160,15 @@ function ProductDetail() {
                 </div>
               )}
               <div className="text-gray-500 text-base mb-1">Category: {product.category}</div>
-              <div className="text-gray-700 text-md text-red-500 font-semibold mb-1">Price: ₹<span className='line-through'> {(product.rate)*3} </span></div>
+          <div className="text-gray-700 text-md text-red-500 font-semibold mb-1">
+              
+          Price: <span className="text-xs text-gray-400 line-through">₹{product.rate ? (product.rate*3) : ''}</span>
+          {product.rate && product.mrp && product.rate*3 > product.mrp && (
+            <span className="text-xs bg-rose-100 text-rose-600 font-bold px-2 py-0.5 rounded-full ml-1">
+              {Math.round(100 - (product.mrp / (product.rate*3)) * 100)}% OFF
+            </span>
+          )}
+          </div>
               <div className="text-gray-700 text-xl text-green-500 font-semibold mb-1">MRP: ₹{product.mrp} /-</div>
               
               <div className="flex gap-4 mt-2">
@@ -198,7 +207,7 @@ function ProductDetail() {
       <div className="max-w-7xl mx-auto mt-4 px-4">
         <div className="bg-blue-50 border-l-4 border-blue-400 text-blue-700 p-4 rounded-lg shadow flex items-center gap-3">
           <span className="font-bold">Note:</span>
-          Product are returnable within 24 hours of delivery.
+          Product(s) are returnable only within 24 hours of the delivery.
         </div>
         {/* Feedback Forum */}
         <div className="bg-white border border-gray-200 rounded-lg shadow p-4 mt-6 max-w-2xl mx-auto">
@@ -321,24 +330,35 @@ function FeedbackList({ productId }) {
   }, [productId]);
 
   if (loading) return <div className="text-gray-400 text-sm py-2">Loading feedbacks...</div>;
-  if (!feedbacks.length) return <div className="text-gray-400 text-sm py-2">No feedbacks yet.</div>;
   const sortedFeedbacks = feedbacks.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const visibleFeedbacks = showAll ? sortedFeedbacks : sortedFeedbacks.slice(0, 3);
   return (
     <div className="mt-6">
       <h4 className="text-md font-bold text-gray-700 mb-2">Customer Feedbacks</h4>
       <div className="flex flex-col gap-3">
-        {visibleFeedbacks.map((fb, idx) => (
-          <div key={fb._id || idx} className="border border-gray-100 rounded-lg p-3 bg-gray-50">
+        {visibleFeedbacks.length === 0 ? (
+          <div className="border border-gray-100 rounded-lg p-3 bg-gray-50">
             <div className="flex items-center gap-2 mb-1">
               {[1,2,3,4,5].map(star => (
-                <FaStar key={star} className={`w-4 h-4 ${star <= fb.rating ? 'text-yellow-400' : 'text-gray-300'}`} />
+                <FaStar key={star} className="w-4 h-4 text-gray-300" />
               ))}
-              <span className="text-xs text-gray-400 ml-2">{new Date(fb.createdAt).toLocaleString()}</span>
+              <span className="text-xs text-gray-400 ml-2">No feedback yet</span>
             </div>
-            <div className="text-gray-700 text-sm">{fb.feedback}</div>
+            <div className="text-gray-400 text-sm italic">You can give feedback after purchasing this product. Be the first to review! </div>
           </div>
-        ))}
+        ) : (
+          visibleFeedbacks.map((fb, idx) => (
+            <div key={fb._id || idx} className="border border-gray-100 rounded-lg p-3 bg-gray-50">
+              <div className="flex items-center gap-2 mb-1">
+                {[1,2,3,4,5].map(star => (
+                  <FaStar key={star} className={`w-4 h-4 ${star <= fb.rating ? 'text-yellow-400' : 'text-gray-300'}`} />
+                ))}
+                <span className="text-xs text-gray-400 ml-2">{new Date(fb.createdAt).toLocaleString()}</span>
+              </div>
+              <div className="text-gray-700 text-sm">{fb.feedback}</div>
+            </div>
+          ))
+        )}
       </div>
       {sortedFeedbacks.length > 3 && (
         !showAll ? (
@@ -450,7 +470,8 @@ function RelatedProducts({ category, price, excludeId }) {
 
 function RelatedProductCard({ product, BACKEND_URL }) {
   const [imgIdx, setImgIdx] = useState(0);
-  const images = product.images && product.images.length > 0 ? product.images : [`/uploads/products/default-product-image.JPG`];
+  const [avgRating, setAvgRating] = useState(0);
+  const images = product.images && product.images.length > 0 ? product.images : ["/uploads/products/default-product-image.JPG"];
   useEffect(() => {
     if (images.length <= 1) return;
     const interval = setInterval(() => {
@@ -459,25 +480,84 @@ function RelatedProductCard({ product, BACKEND_URL }) {
     return () => clearInterval(interval);
   }, [images.length]);
   useEffect(() => { setImgIdx(0); }, [product._id]);
+  useEffect(() => {
+    // Fetch average rating for this product
+    const fetchRating = async () => {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/product/${product._id}/feedback`);
+        if (res.ok) {
+          const feedbacks = await res.json();
+          if (Array.isArray(feedbacks) && feedbacks.length > 0) {
+            const avg = feedbacks.reduce((sum, f) => sum + (f.rating || 0), 0) / feedbacks.length;
+            setAvgRating(avg);
+          } else {
+            setAvgRating(0);
+          }
+        } else {
+          setAvgRating(0);
+        }
+      } catch {
+        setAvgRating(0);
+      }
+    };
+    fetchRating();
+  }, [product._id, BACKEND_URL]);
+  // Check if product is new (within 7 days)
+  let isNew = false;
+  if (product.date) {
+    const now = new Date();
+    const prodDate = new Date(product.date);
+    const diff = (now - prodDate) / (1000 * 60 * 60 * 24);
+    isNew = diff <= 7;
+  }
   return (
-    <Link to={`/sections/product/${product._id}`} className="bg-white rounded-xl shadow-lg flex flex-col items-center p-4 hover:shadow-2xl transition cursor-pointer">
-      <img
-        src={`${BACKEND_URL}${images[imgIdx]}`}
-        alt={product.product}
-        className="w-full h-64 object-contain rounded mb-3 bg-gray-50"
-      />
-      <h3 className="text-lg font-bold text-rose-500 mb-1 text-center w-full truncate">{product.product || 'No Name'}</h3>
-      {product.color && product.color.name && (
-        <div className="flex items-center gap-2 mb-1">
-          <span className="inline-block w-4 h-4 rounded-full border border-gray-300" style={{ backgroundColor: product.color.hex || '#ccc' }}></span>
-          <span className="text-xs text-gray-700 font-medium">{product.color.name}</span>
-        </div>
+    <div className="relative group bg-white rounded-2xl shadow-xl border border-gray-100 hover:shadow-2xl hover:border-rose-200 transition-all flex flex-col overflow-hidden">
+      {isNew && (
+        <span className="absolute flex gap-1 items-center top-3 left-3 z-10 bg-rose-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow"><CiShoppingTag /> New</span>
       )}
-      <div className="text-gray-500 text-sm mb-2 text-center w-full truncate">{product.category || ''}</div>
-      <div className="text-gray-700 font-semibold mb-1 text-red-500">Price: ₹<span className='line-through'> {(product.rate)*3}</span></div>
-      <div className="text-gray-700 text-xl font-bold mb-1 text-green-500">MRP: ₹{product.mrp || ''}</div>
-      <div className="text-gray-600 text-xs mb-2 text-center w-full truncate">{product.description || ''}</div>
-    </Link>
+      <Link to={`/sections/product/${product._id}`} className="block">
+        <div className="relative w-full aspect-[4/3] bg-gray-50 flex items-center justify-center overflow-hidden">
+          <img
+            src={`${BACKEND_URL}${images[imgIdx]}`}
+            alt={product.product}
+            className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+          />
+        </div>
+      </Link>
+      <div className="flex-1 flex flex-col px-4 py-3 gap-1">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="text-base font-bold text-gray-900 truncate max-w-[70%]">{product.product || 'No Name'}</h3>
+          {product.color && product.color.name && (
+            <span className="flex items-center gap-1">
+              <span className="inline-block w-4 h-4 rounded-full border border-gray-300" style={{ backgroundColor: product.color.hex || '#ccc' }}></span>
+              <span className="text-xs text-gray-500 font-medium">{product.color.name}</span>
+            </span>
+          )}
+        </div>
+        <div className="text-xs text-gray-500 mb-1 truncate">{product.category || ''}</div>
+        <div className="text-xs text-gray-600 mb-2 min-h-[2.2em] line-clamp-2">{product.description || ''}</div>
+        <div className="items-end gap-2 mb-2">
+          Price: <span className="text-xs text-gray-400 line-through">₹{product.rate ? (product.rate*3) : ''}</span>
+          {product.rate && product.mrp && product.rate*3 > product.mrp && (
+            <span className="text-xs bg-rose-100 text-rose-600 font-bold px-2 py-0.5 rounded-full ml-1">
+              {Math.round(100 - (product.mrp / (product.rate*3)) * 100)}% OFF
+            </span>
+          )}
+          <br/>
+          <span className="text-lg font-bold text-green-600">MRP: ₹{product.mrp || ''}</span>
+        </div>
+        <div className="flex items-center gap-1 mb-2">
+          {[1,2,3,4,5].map(star => (
+            <FaStar key={star} className={`w-4 h-4 ${star <= Math.round(avgRating) ? 'text-yellow-400' : 'text-gray-300'}`} />
+          ))}
+          <span className="text-xs text-gray-500 ml-1">{avgRating > 0 ? avgRating.toFixed(1) : 'No rating'}</span>
+        </div>
+        <Link to={`/sections/product/${product._id}`} className="mt-auto w-full block">
+          <button className="w-full py-2 rounded-lg bg-rose-500 text-white font-bold text-sm shadow hover:bg-rose-600 transition-all focus:outline-none focus:ring-2 focus:ring-rose-400">View</button>
+        </Link>
+      </div>
+    </div>
   );
 }
 
