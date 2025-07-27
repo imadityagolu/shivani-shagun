@@ -49,6 +49,19 @@ function ShowBudget() {
     return `${d.getDate().toString().padStart(2, '0')}-${(d.getMonth()+1).toString().padStart(2, '0')}-${d.getFullYear()}`;
   };
 
+  // Helper to format date with time
+  const formatDateTime = (dateStr) => {
+    const d = new Date(dateStr);
+    if (isNaN(d)) return '';
+    const pad = n => n.toString().padStart(2, '0');
+    let hours = d.getHours();
+    const minutes = pad(d.getMinutes());
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    return `${d.getDate().toString().padStart(2, '0')}-${(d.getMonth()+1).toString().padStart(2, '0')}-${d.getFullYear()} ${pad(hours)}:${minutes} ${ampm}`;
+  };
+
   // Map productId to rate
   // products.forEach(p => { productRateMap[p._id] = p.rate; });
 
@@ -145,10 +158,10 @@ function ShowBudget() {
         // XLSX download handler
         const handleDownloadXLSX = () => {
           if (filteredOrders.length === 0) return;
-          // Sort by date ascending for export
-          const exportOrders = [...filteredOrders].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+          // Use the same sort as the current view
+          const exportOrders = [...filteredOrders];
           const headers = [
-            'Customer', 'Mobile', 'Address', 'Products', 'Quantity', 'Total', 'PaymentMethod', 'Mode', 'Status', 'Paid', 'Due', 'Cost', 'Date', 'P/L'
+            'Customer', 'Mobile', 'Address', 'Products', 'Quantity', 'Total', 'PaymentMethod', 'Mode', 'Status', 'Paid', 'Due', 'Cost', 'Date & Time', 'P/L'
           ];
           const rows = exportOrders.map(order => {
             // Products as string
@@ -183,7 +196,7 @@ function ShowBudget() {
               order.paid !== undefined && order.paid !== null ? order.paid : '',
               order.due !== undefined && order.due !== null ? order.due : '',
               order.cost !== undefined && order.cost !== null ? order.cost : '',
-              formatDate(order.createdAt),
+              formatDateTime(order.createdAt),
               pl
             ];
           });
@@ -197,10 +210,10 @@ function ShowBudget() {
         // CSV download handler
         const handleDownloadCSV = () => {
           if (filteredOrders.length === 0) return;
-          // Sort by date ascending for export
-          const exportOrders = [...filteredOrders].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+          // Use the same sort as the current view
+          const exportOrders = [...filteredOrders];
           const headers = [
-            'Customer', 'Mobile', 'Address', 'Products', 'Quantity', 'Total', 'PaymentMethod', 'Mode', 'Status', 'Paid', 'Due', 'Cost', 'Date', 'P/L'
+            'Customer', 'Mobile', 'Address', 'Products', 'Quantity', 'Total', 'PaymentMethod', 'Mode', 'Status', 'Paid', 'Due', 'Cost', 'Date & Time', 'P/L'
           ];
           const rows = exportOrders.map(order => {
             let productsStr = '';
@@ -234,7 +247,7 @@ function ShowBudget() {
               order.paid !== undefined && order.paid !== null ? order.paid : '',
               order.due !== undefined && order.due !== null ? order.due : '',
               order.cost !== undefined && order.cost !== null ? order.cost : '',
-              formatDate(order.createdAt),
+              formatDateTime(order.createdAt),
               pl
             ];
           });
@@ -247,7 +260,7 @@ function ShowBudget() {
         if (filteredOrders.length === 0) return null;
 
         // Calculate sums for summary table
-        let sumTotal = 0, sumPaid = 0, sumDue = 0, sumCost = 0, sumPL = 0;
+        let sumTotal = 0, sumPaid = 0, sumDue = 0, sumCost = 0, sumPL = 0, totalQuantity = 0;
         filteredOrders.forEach(order => {
           const total = Number(order.total) || 0;
           const paid = Number(order.paid) || 0;
@@ -259,6 +272,9 @@ function ShowBudget() {
           sumDue += due;
           sumCost += cost;
           sumPL += pl;
+          
+          // Calculate total quantity - simply sum the order quantity
+          totalQuantity += Number(order.quantity || 0);
         });
         return (
           <div className="overflow-x-auto mb-4">
@@ -271,6 +287,8 @@ function ShowBudget() {
                     <th className="border px-3 py-2">Due</th>
                     <th className="border px-3 py-2">Cost</th>
                     <th className="border px-3 py-2">P/L</th>
+                    <th className="border px-3 py-2">Orders</th>
+                    <th className="border px-3 py-2">Quantity</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -280,6 +298,8 @@ function ShowBudget() {
                     <td className="border px-3 py-2 font-bold">₹{sumDue.toLocaleString('en-IN')}</td>
                     <td className="border px-3 py-2 font-bold">₹{sumCost.toLocaleString('en-IN')}</td>
                     <td className={"border px-3 py-2 font-bold " + (sumPL < 0 ? 'text-red-500' : 'text-green-700')}>{sumPL < 0 ? `-₹${Math.abs(sumPL).toLocaleString('en-IN')}` : `₹${sumPL.toLocaleString('en-IN')}`}</td>
+                    <td className="border px-3 py-2 font-bold">{filteredOrders.length}</td>
+                    <td className="border px-3 py-2 font-bold">{totalQuantity.toLocaleString('en-IN')}</td>
                   </tr>
                 </tbody>
               </table>
@@ -316,7 +336,7 @@ function ShowBudget() {
                 <th className="border px-2 py-1 text-[10px]">paid</th>
                 <th className="border px-2 py-1 text-[10px]">due</th>
                 <th className="border px-2 py-1 text-[10px]">cost</th>
-                <th className="border px-2 py-1 text-[10px]">createdAt</th>
+                <th className="border px-2 py-1 text-[10px]">Date & Time</th>
                 <th className="border px-2 py-1 text-[10px]">pl</th>
               </tr>
             </thead>
@@ -404,7 +424,7 @@ function ShowBudget() {
                       <td className="border px-2 py-1 text-[10px]">{order.paid !== undefined && order.paid !== null ? `₹${order.paid}` : ''}</td>
                       <td className={"border px-2 py-1 text-[10px] " + (Number(order.due) > 0 ? 'text-red-500' : '')}>{order.due !== undefined && order.due !== null ? `₹${order.due}` : ''}</td>
                       <td className="border px-2 py-1 text-[10px]">{order.cost !== undefined && order.cost !== null ? `₹${order.cost}` : ''}</td>
-                      <td className="border px-2 py-1 text-[10px]">{formatDate(order.createdAt)}</td>
+                      <td className="border px-2 py-1 text-[10px]">{formatDateTime(order.createdAt)}</td>
                       <td className={"border px-2 py-1 font-bold text-[10px] " + (pl < 0 ? 'text-red-500' : 'text-green-700')}>{pl < 0 ? `-₹${Math.abs(pl)}` : `₹${pl}`}</td>
                     </tr>
                   );
