@@ -143,7 +143,6 @@ function CategoryCircle({ to, img, label, isFirst, isLast }) {
 
 function LatestProductsShowcase() {
   const [products, setProducts] = useState([]);
-  const [ratings, setRatings] = useState({}); // { productId: avgRating }
   const [loading, setLoading] = useState(true);
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -156,25 +155,6 @@ function LatestProductsShowcase() {
         if (Array.isArray(data)) {
           const latest = data.slice(0, 4);
           setProducts(latest);
-          // Fetch feedbacks for each product
-          latest.forEach(async (p) => {
-            try {
-              const fbRes = await fetch(`${BACKEND_URL}/api/product/${p._id}/feedback`);
-              if (fbRes.ok) {
-                const feedbacks = await fbRes.json();
-                if (Array.isArray(feedbacks) && feedbacks.length > 0) {
-                  const avg = feedbacks.reduce((sum, f) => sum + (f.rating || 0), 0) / feedbacks.length;
-                  setRatings(r => ({ ...r, [p._id]: avg }));
-                } else {
-                  setRatings(r => ({ ...r, [p._id]: 0 }));
-                }
-              } else {
-                setRatings(r => ({ ...r, [p._id]: 0 }));
-              }
-            } catch {
-              setRatings(r => ({ ...r, [p._id]: 0 }));
-            }
-          });
         }
       } catch (err) {
         setProducts([]);
@@ -192,7 +172,7 @@ function LatestProductsShowcase() {
     <div className="max-w-7xl mx-auto px-4 mb-12">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
         {products.map((p) => (
-          <ProductCardWithRating key={p._id} product={p} BACKEND_URL={BACKEND_URL} avgRating={ratings[p._id] || 0} />
+          <ProductCardWithRating key={p._id} product={p} BACKEND_URL={BACKEND_URL} avgRating={0} />
         ))}
       </div>
     </div>
@@ -201,7 +181,6 @@ function LatestProductsShowcase() {
 
 function CategoryLatestShowcase() {
   const [products, setProducts] = useState([]);
-  const [ratings, setRatings] = useState({}); // { productId: avgRating }
   const [loading, setLoading] = useState(true);
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const categories = [
@@ -219,25 +198,6 @@ function CategoryLatestShowcase() {
         const data = await res.json();
         if (Array.isArray(data)) {
           setProducts(data);
-          // Fetch feedbacks for each product
-          data.forEach(async (p) => {
-            try {
-              const fbRes = await fetch(`${BACKEND_URL}/api/product/${p._id}/feedback`);
-              if (fbRes.ok) {
-                const feedbacks = await fbRes.json();
-                if (Array.isArray(feedbacks) && feedbacks.length > 0) {
-                  const avg = feedbacks.reduce((sum, f) => sum + (f.rating || 0), 0) / feedbacks.length;
-                  setRatings(r => ({ ...r, [p._id]: avg }));
-                } else {
-                  setRatings(r => ({ ...r, [p._id]: 0 }));
-                }
-              } else {
-                setRatings(r => ({ ...r, [p._id]: 0 }));
-              }
-            } catch {
-              setRatings(r => ({ ...r, [p._id]: 0 }));
-            }
-          });
         }
       } catch (err) {
         setProducts([]);
@@ -264,7 +224,7 @@ function CategoryLatestShowcase() {
             <h3 className="text-xl sm:text-2xl font-bold text-rose-500 mb-6 mt-8">Latest {cat.label}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
               {catProducts.map((p) => (
-                <ProductCardWithRating key={p._id} product={p} BACKEND_URL={BACKEND_URL} avgRating={ratings[p._id] || 0} />
+                <ProductCardWithRating key={p._id} product={p} BACKEND_URL={BACKEND_URL} avgRating={0} />
               ))}
             </div>
           </div>
@@ -335,9 +295,9 @@ function ProductCardWithRating({ product, BACKEND_URL, avgRating }) {
         </div>
         <div className="flex items-center gap-1 mb-2">
           {[1,2,3,4,5].map(star => (
-            <FaStar key={star} className={`w-4 h-4 ${star <= Math.round(avgRating) ? 'text-yellow-400' : 'text-gray-300'}`} />
+            <FaStar key={star} className="w-4 h-4 text-gray-300" />
           ))}
-          <span className="text-xs text-gray-500 ml-1">{avgRating > 0 ? avgRating.toFixed(1) : 'No rating'}</span>
+          <span className="text-xs text-gray-500 ml-1">No rating</span>
         </div>
         <Link to={`/product/${product._id}`} className="mt-auto w-full block">
           <button className="w-full py-2 rounded-lg bg-rose-500 text-white font-bold text-sm shadow hover:bg-rose-600 transition-all focus:outline-none focus:ring-2 focus:ring-rose-400">View</button>

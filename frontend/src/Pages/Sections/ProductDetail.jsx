@@ -209,12 +209,6 @@ function ProductDetail() {
           <span className="font-bold">Note:</span>
           Product(s) are returnable only within 24 hours of the delivery.
         </div>
-        {/* Feedback Forum */}
-        <div className="bg-white border border-gray-200 rounded-lg shadow p-4 mt-6 max-w-2xl mx-auto">
-          <h3 className="text-lg font-bold text-rose-500 mb-2">Feedbacks & Ratings !!</h3>
-          <FeedbackFormWithEligibility productId={id} />
-          <FeedbackList productId={id} />
-        </div>
         {/* Related Products */}
         {product && (
           <RelatedProducts category={product.category} price={product.mrp} excludeId={product._id} />
@@ -223,204 +217,6 @@ function ProductDetail() {
       <Footer />
     </>
   );
-}
-
-// FeedbackForm component
-function FeedbackForm({ productId }) {
-  const [rating, setRating] = useState(0);
-  const [hover, setHover] = useState(0);
-  const [feedback, setFeedback] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!rating || !feedback.trim()) {
-      toast.error('Please provide both rating and feedback.');
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-      const res = await fetch(`${BACKEND_URL}/api/product/${productId}/feedback`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rating, feedback })
-      });
-      if (res.ok) {
-        setSubmitted(true);
-        setFeedback('');
-        setRating(0);
-        toast.success('Thank you for your feedback!');
-      } else {
-        const data = await res.json();
-        toast.error(data.message || 'Failed to submit feedback');
-      }
-    } catch (err) {
-      toast.error('Server error');
-    }
-    setSubmitting(false);
-  };
-
-  if (submitted) {
-    return <div className="text-green-600 font-semibold py-2">Thank you for your feedback!</div>;
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-gray-700">Your Rating:</span>
-        {[1,2,3,4,5].map(star => (
-          <button
-            type="button"
-            key={star}
-            onClick={() => setRating(star)}
-            onMouseEnter={() => setHover(star)}
-            onMouseLeave={() => setHover(0)}
-            className="focus:outline-none"
-          >
-            <FaStar className={
-              `w-5 h-5 ${star <= (hover || rating) ? 'text-yellow-400' : 'text-gray-300'}`
-            } />
-          </button>
-        ))}
-      </div>
-      <textarea
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-400 text-sm"
-        rows={3}
-        placeholder="Write your feedback here..."
-        value={feedback}
-        onChange={e => setFeedback(e.target.value)}
-        required
-        disabled={submitting}
-      />
-      <button
-        type="submit"
-        className="self-end bg-rose-500 text-white px-6 py-2 rounded font-bold hover:bg-rose-600 transition disabled:opacity-60"
-        disabled={submitting}
-      >
-        {submitting ? 'Submitting...' : 'Submit Feedback'}
-      </button>
-    </form>
-  );
-}
-
-function FeedbackList({ productId }) {
-  const [feedbacks, setFeedbacks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showAll, setShowAll] = useState(false);
-  useEffect(() => {
-    const fetchFeedbacks = async () => {
-      setLoading(true);
-      try {
-        const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-        const res = await fetch(`${BACKEND_URL}/api/product/${productId}/feedback`);
-        if (res.ok) {
-          const data = await res.json();
-          setFeedbacks(Array.isArray(data) ? data : []);
-        } else {
-          setFeedbacks([]);
-        }
-      } catch {
-        setFeedbacks([]);
-      }
-      setLoading(false);
-    };
-    if (productId) fetchFeedbacks();
-  }, [productId]);
-
-  if (loading) return <div className="text-gray-400 text-sm py-2">Loading feedbacks...</div>;
-  const sortedFeedbacks = feedbacks.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  const visibleFeedbacks = showAll ? sortedFeedbacks : sortedFeedbacks.slice(0, 3);
-  return (
-    <div className="mt-6">
-      <h4 className="text-md font-bold text-gray-700 mb-2">Customer Feedbacks</h4>
-      <div className="flex flex-col gap-3">
-        {visibleFeedbacks.length === 0 ? (
-          <div className="border border-gray-100 rounded-lg p-3 bg-gray-50">
-            <div className="flex items-center gap-2 mb-1">
-              {[1,2,3,4,5].map(star => (
-                <FaStar key={star} className="w-4 h-4 text-gray-300" />
-              ))}
-              <span className="text-xs text-gray-400 ml-2">No feedback yet</span>
-            </div>
-            <div className="text-gray-400 text-sm italic">You can give feedback after purchasing this product. Be the first to review! </div>
-          </div>
-        ) : (
-          visibleFeedbacks.map((fb, idx) => (
-            <div key={fb._id || idx} className="border border-gray-100 rounded-lg p-3 bg-gray-50">
-              <div className="flex items-center gap-2 mb-1">
-                {[1,2,3,4,5].map(star => (
-                  <FaStar key={star} className={`w-4 h-4 ${star <= fb.rating ? 'text-yellow-400' : 'text-gray-300'}`} />
-                ))}
-                <span className="text-xs text-gray-400 ml-2">{new Date(fb.createdAt).toLocaleString()}</span>
-              </div>
-              <div className="text-gray-700 text-sm">{fb.feedback}</div>
-            </div>
-          ))
-        )}
-      </div>
-      {sortedFeedbacks.length > 3 && (
-        !showAll ? (
-          <button
-            className="mt-3 px-4 py-2 bg-rose-100 text-rose-600 rounded font-semibold hover:bg-rose-200 transition self-center"
-            onClick={() => setShowAll(true)}
-          >
-            Show All
-          </button>
-        ) : (
-          <button
-            className="mt-3 px-4 py-2 bg-gray-100 text-gray-600 rounded font-semibold hover:bg-gray-200 transition self-center"
-            onClick={() => setShowAll(false)}
-          >
-            Show Less
-          </button>
-        )
-      )}
-    </div>
-  );
-}
-
-// Only show feedback form if user has purchased and received (delivered) this product
-function FeedbackFormWithEligibility({ productId }) {
-  const [eligible, setEligible] = useState(false);
-  const [checking, setChecking] = useState(true);
-  useEffect(() => {
-    const checkEligibility = async () => {
-      setChecking(true);
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setEligible(false);
-        setChecking(false);
-        return;
-      }
-      try {
-        const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-        const res = await fetch(`${BACKEND_URL}/api/customer/orders`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const orders = await res.json();
-          // Check for delivered order with this product
-          const found = Array.isArray(orders) && orders.some(order =>
-            order.status === 'delivered' &&
-            Array.isArray(order.products) && order.products.some(p => p._id === productId)
-          );
-          setEligible(found);
-        } else {
-          setEligible(false);
-        }
-      } catch {
-        setEligible(false);
-      }
-      setChecking(false);
-    };
-    checkEligibility();
-  }, [productId]);
-
-  if (checking) return <div className="text-gray-400 text-sm py-2">Checking eligibility...</div>;
-  if (!eligible) return null;
-  return <FeedbackForm productId={productId} />;
 }
 
 function RelatedProducts({ category, price, excludeId }) {
@@ -470,7 +266,6 @@ function RelatedProducts({ category, price, excludeId }) {
 
 function RelatedProductCard({ product, BACKEND_URL }) {
   const [imgIdx, setImgIdx] = useState(0);
-  const [avgRating, setAvgRating] = useState(0);
   const images = product.images && product.images.length > 0 ? product.images : ["/uploads/products/default-product-image.JPG"];
   useEffect(() => {
     if (images.length <= 1) return;
@@ -480,28 +275,7 @@ function RelatedProductCard({ product, BACKEND_URL }) {
     return () => clearInterval(interval);
   }, [images.length]);
   useEffect(() => { setImgIdx(0); }, [product._id]);
-  useEffect(() => {
-    // Fetch average rating for this product
-    const fetchRating = async () => {
-      try {
-        const res = await fetch(`${BACKEND_URL}/api/product/${product._id}/feedback`);
-        if (res.ok) {
-          const feedbacks = await res.json();
-          if (Array.isArray(feedbacks) && feedbacks.length > 0) {
-            const avg = feedbacks.reduce((sum, f) => sum + (f.rating || 0), 0) / feedbacks.length;
-            setAvgRating(avg);
-          } else {
-            setAvgRating(0);
-          }
-        } else {
-          setAvgRating(0);
-        }
-      } catch {
-        setAvgRating(0);
-      }
-    };
-    fetchRating();
-  }, [product._id, BACKEND_URL]);
+  
   // Check if product is new (within 7 days)
   let isNew = false;
   if (product.date) {

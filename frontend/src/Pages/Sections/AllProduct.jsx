@@ -22,24 +22,6 @@ function AllProduct() {
         const data = await res.json();
         if (Array.isArray(data)) {
           setProducts(data);
-          data.forEach(async (p) => {
-            try {
-              const fbRes = await fetch(`${BACKEND_URL}/api/product/${p._id}/feedback`);
-              if (fbRes.ok) {
-                const feedbacks = await fbRes.json();
-                if (Array.isArray(feedbacks) && feedbacks.length > 0) {
-                  const avg = feedbacks.reduce((sum, f) => sum + (f.rating || 0), 0) / feedbacks.length;
-                  setRatings(r => ({ ...r, [p._id]: avg }));
-                } else {
-                  setRatings(r => ({ ...r, [p._id]: 0 }));
-                }
-              } else {
-                setRatings(r => ({ ...r, [p._id]: 0 }));
-              }
-            } catch {
-              setRatings(r => ({ ...r, [p._id]: 0 }));
-            }
-          });
         }
       } catch (err) {
         // ignore
