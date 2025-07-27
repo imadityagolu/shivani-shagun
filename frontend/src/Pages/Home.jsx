@@ -125,8 +125,8 @@ function Home() {
 
 function CategoryCircle({ to, img, label, isFirst, isLast }) {
   return (
-    <a
-      href={to}
+    <Link
+      to={to}
       className={
         `flex flex-col items-center group min-w-[4.5rem] sm:min-w-[10rem] snap-center ` +
         (isFirst ? 'ml-4 ' : '') +
@@ -137,7 +137,7 @@ function CategoryCircle({ to, img, label, isFirst, isLast }) {
         <img src={img} alt={label} className="object-cover w-full h-full max-w-[3.5rem] sm:max-w-none" />
       </div>
       <span className="mt-2 text-xs sm:mt-3 sm:text-lg font-bold text-rose-500 group-hover:text-rose-700 transition">{label}</span>
-    </a>
+    </Link>
   );
 }
 
@@ -301,7 +301,7 @@ function ProductCardWithRating({ product, BACKEND_URL, avgRating }) {
       {isNew && (
         <span className="absolute flex gap-1 items-center top-3 left-3 z-10 bg-rose-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow"><CiShoppingTag /> New</span>
       )}
-                      <Link to={`/product/${product._id}`} className="block">
+      <Link to={`/product/${product._id}`} className="block">
         <div className="relative w-full aspect-[4/3] bg-gray-50 flex items-center justify-center overflow-hidden">
           <img
             src={`${BACKEND_URL}${images[imgIdx]}`}
@@ -339,7 +339,7 @@ function ProductCardWithRating({ product, BACKEND_URL, avgRating }) {
           ))}
           <span className="text-xs text-gray-500 ml-1">{avgRating > 0 ? avgRating.toFixed(1) : 'No rating'}</span>
         </div>
-                        <Link to={`/product/${product._id}`} className="mt-auto w-full block">
+        <Link to={`/product/${product._id}`} className="mt-auto w-full block">
           <button className="w-full py-2 rounded-lg bg-rose-500 text-white font-bold text-sm shadow hover:bg-rose-600 transition-all focus:outline-none focus:ring-2 focus:ring-rose-400">View</button>
         </Link>
       </div>
