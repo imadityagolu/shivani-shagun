@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import logo from '../images/store/logo.png';
+import logo from '../Images/store/logo.png';
 import { FaSignInAlt, FaUserCircle } from 'react-icons/fa';
 
 function Header() {
