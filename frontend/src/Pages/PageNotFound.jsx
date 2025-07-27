@@ -18,6 +18,11 @@ function PageNotFound() {
         >
           Back to Website
         </Link>
+        <Link to="/Login"
+          className="px-6 py-2 bg-rose-500 text-white rounded-md hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500"
+        >
+          Login/Signup
+        </Link>
       </div>
     </div>
   );
