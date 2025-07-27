@@ -18,13 +18,13 @@ function Footer() {
         <div>
           <h3 className="text-lg font-bold mb-3">Quick Links</h3>
           <ul className="space-y-2 text-sm">
-            <li><a href="/" className="hover:underline hover:text-rose-200 transition">Home</a></li>
-            <li><a href="/sections/allproduct" className="hover:underline hover:text-rose-200 transition">All Products</a></li>
-            <li><a href="/sections/saree" className="hover:underline hover:text-rose-200 transition">Sarees</a></li>
-            <li><a href="/sections/lehnga" className="hover:underline hover:text-rose-200 transition">Lehngas</a></li>
-            <li><a href="/sections/chunni" className="hover:underline hover:text-rose-200 transition">Chunnis</a></li>
-            <li><a href="/sections/sute" className="hover:underline hover:text-rose-200 transition">Sutes</a></li>
-            <li><a href="/Login" className="hover:underline hover:text-rose-200 transition">Login / signup</a></li>
+            <li><link to="/" className="hover:underline hover:text-rose-200 transition">Home</link></li>
+            <li><link to="/AllProduct" className="hover:underline hover:text-rose-200 transition">All Products</link></li>
+            <li><link to="/Saree" className="hover:underline hover:text-rose-200 transition">Sarees</link></li>
+            <li><link to="/Lehnga" className="hover:underline hover:text-rose-200 transition">Lehngas</link></li>
+            <li><link to="/Chunni" className="hover:underline hover:text-rose-200 transition">Chunnis</link></li>
+            <li><link to="/Sute" className="hover:underline hover:text-rose-200 transition">Sutes</link></li>
+            <li><link to="/Login" className="hover:underline hover:text-rose-200 transition">Login / signup</link></li>
           </ul>
         </div>
         {/* Contact & Social */}
