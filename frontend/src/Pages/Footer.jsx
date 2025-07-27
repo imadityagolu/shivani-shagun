@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaInstagram, FaFacebook, FaWhatsapp, FaEnvelope, FaMapMarkerAlt, FaPhoneAlt } from 'react-icons/fa';
 import logo from '../Images/store/logo.png';
+import { Link } from 'react-router-dom';
 
 function Footer() {
   return (
@@ -18,13 +19,13 @@ function Footer() {
         <div>
           <h3 className="text-lg font-bold mb-3">Quick Links</h3>
           <ul className="space-y-2 text-sm">
-            <li><link to="/" className="hover:underline hover:text-rose-200 transition">Home</link></li>
-            <li><link to="/AllProduct" className="hover:underline hover:text-rose-200 transition">All Products</link></li>
-            <li><link to="/Saree" className="hover:underline hover:text-rose-200 transition">Sarees</link></li>
-            <li><link to="/Lehnga" className="hover:underline hover:text-rose-200 transition">Lehngas</link></li>
-            <li><link to="/Chunni" className="hover:underline hover:text-rose-200 transition">Chunnis</link></li>
-            <li><link to="/Sute" className="hover:underline hover:text-rose-200 transition">Sutes</link></li>
-            <li><link to="/Login" className="hover:underline hover:text-rose-200 transition">Login / signup</link></li>
+            <li><Link to="/" className="hover:underline hover:text-rose-200 transition">Home</Link></li>
+            <li><Link to="/AllProduct" className="hover:underline hover:text-rose-200 transition">All Products</Link></li>
+            <li><Link to="/Saree" className="hover:underline hover:text-rose-200 transition">Sarees</Link></li>
+            <li><Link to="/Lehnga" className="hover:underline hover:text-rose-200 transition">Lehngas</Link></li>
+            <li><Link to="/Chunni" className="hover:underline hover:text-rose-200 transition">Chunnis</Link></li>
+            <li><Link to="/Sute" className="hover:underline hover:text-rose-200 transition">Sutes</Link></li>
+            <li><Link to="/Login" className="hover:underline hover:text-rose-200 transition">Login / signup</Link></li>
           </ul>
         </div>
         {/* Contact & Social */}
@@ -38,7 +39,7 @@ function Footer() {
         <div>
           <h3 className="text-lg font-bold mb-3">Join Us</h3>
           <div className="flex gap-4 mt-2">
-            <a href="https://instagram.com/shivani_shagun" target="_blank" rel="noopener noreferrer" className="bg-white/10 hover:bg-white/20 p-2 rounded-full text-2xl text-white transition"><FaInstagram /></a>
+            <a href="https://instagram.com/_shivani_shagun" target="_blank" rel="noopener noreferrer" className="bg-white/10 hover:bg-white/20 p-2 rounded-full text-2xl text-white transition"><FaInstagram /></a>
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="bg-white/10 hover:bg-white/20 p-2 rounded-full text-2xl text-white transition"><FaFacebook /></a>
             <a href="https://wa.me/919905120849" target="_blank" rel="noopener noreferrer" className="bg-white/10 hover:bg-white/20 p-2 rounded-full text-2xl text-white transition"><FaWhatsapp /></a>
           </div>
