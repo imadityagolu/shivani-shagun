@@ -42,11 +42,11 @@ function Header() {
         </Link>
         {/* Centered Categories (Desktop) */}
         <div className="hidden sm:flex flex-1 justify-center gap-3">
-          <Link to='/sections/saree' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Saree</Link>
-          <Link to='/sections/lehnga' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Lehnga</Link>
-          <Link to='/sections/chunni' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Chunni</Link>
-          <Link to='/sections/sute' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Sute</Link>
-          <Link to='/sections/allproduct' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>All Products</Link>
+          <Link to='/Saree' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Saree</Link>
+          <Link to='/Lehnga' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Lehnga</Link>
+          <Link to='/Chunni' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Chunni</Link>
+          <Link to='/Sute' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Sute</Link>
+          <Link to='/AllProduct' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>All Products</Link>
         </div>
         {/* Login/Profile (Desktop) */}
         <div className="hidden sm:flex gap-3 justify-end min-w-[120px]">
@@ -90,35 +90,35 @@ function Header() {
               &times;
             </button>
             <Link
-              to='/sections/saree'
+              to='/Saree'
               className='w-full border rounded-lg bg-white text-rose-500 py-2 px-3 text-base font-semibold shadow hover:bg-rose-100 transition text-center'
               onClick={() => setOpen(false)}
             >
               Saree
             </Link>
             <Link
-              to='/sections/lehnga'
+              to='/Lehnga'
               className='w-full border rounded-lg bg-white text-rose-500 py-2 px-3 text-base font-semibold shadow hover:bg-rose-100 transition text-center'
               onClick={() => setOpen(false)}
             >
               Lehnga
             </Link>
             <Link
-              to='/sections/chunni'
+              to='/Chunni'
               className='w-full border rounded-lg bg-white text-rose-500 py-2 px-3 text-base font-semibold shadow hover:bg-rose-100 transition text-center'
               onClick={() => setOpen(false)}
             >
               Chunni
             </Link>
             <Link
-              to='/sections/sute'
+              to='/Sute'
               className='w-full border rounded-lg bg-white text-rose-500 py-2 px-3 text-base font-semibold shadow hover:bg-rose-100 transition text-center'
               onClick={() => setOpen(false)}
             >
               Sute
             </Link>
             <Link
-              to='/sections/allproduct'
+              to='/AllProduct'
               className='w-full border rounded-lg bg-white text-rose-500 py-2 px-3 text-base font-semibold shadow hover:bg-rose-100 transition text-center'
               onClick={() => setOpen(false)}
             >
