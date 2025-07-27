@@ -81,10 +81,10 @@ function Home() {
       
       {/* Category Circles */}
       <div className="flex flex-row justify-center gap-4 sm:gap-8 py-8 overflow-x-auto scrollbar-hide min-w-0 pl-0 pr-0 sm:pl-0 sm:pr-0 snap-x snap-mandatory">
-        <CategoryCircle to="/sections/lehnga" img={lehngaImg} label="Lehnga" isFirst />
-        <CategoryCircle to="/sections/saree" img={sareeImg} label="Saree" />
-        <CategoryCircle to="/sections/chunni" img={chunniImg} label="Chunni" />
-        <CategoryCircle to="/sections/sute" img={suteImg} label="Sute" isLast />
+        <CategoryCircle to="/Lehnga" img={lehngaImg} label="Lehnga" isFirst />
+        <CategoryCircle to="/Saree" img={sareeImg} label="Saree" />
+        <CategoryCircle to="/Chunni" img={chunniImg} label="Chunni" />
+        <CategoryCircle to="/Sute" img={suteImg} label="Sute" isLast />
       </div>
       
       {/* Video Section Title */}
@@ -107,7 +107,7 @@ function Home() {
       </div>
       
       <div className="flex justify-center mt-2 mb-8">
-        <Link to="/sections/allproduct" className="px-6 py-2 rounded-lg bg-rose-500 text-white font-bold text-base shadow hover:bg-rose-600 transition">
+        <Link to="/AllProduct" className="px-6 py-2 rounded-lg bg-rose-500 text-white font-bold text-base shadow hover:bg-rose-600 transition">
           Show All Products
         </Link>
       </div>
@@ -301,7 +301,7 @@ function ProductCardWithRating({ product, BACKEND_URL, avgRating }) {
       {isNew && (
         <span className="absolute flex gap-1 items-center top-3 left-3 z-10 bg-rose-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow"><CiShoppingTag /> New</span>
       )}
-      <Link to={`/sections/product/${product._id}`} className="block">
+                      <Link to={`/product/${product._id}`} className="block">
         <div className="relative w-full aspect-[4/3] bg-gray-50 flex items-center justify-center overflow-hidden">
           <img
             src={`${BACKEND_URL}${images[imgIdx]}`}
@@ -339,7 +339,7 @@ function ProductCardWithRating({ product, BACKEND_URL, avgRating }) {
           ))}
           <span className="text-xs text-gray-500 ml-1">{avgRating > 0 ? avgRating.toFixed(1) : 'No rating'}</span>
         </div>
-        <Link to={`/sections/product/${product._id}`} className="mt-auto w-full block">
+                        <Link to={`/product/${product._id}`} className="mt-auto w-full block">
           <button className="w-full py-2 rounded-lg bg-rose-500 text-white font-bold text-sm shadow hover:bg-rose-600 transition-all focus:outline-none focus:ring-2 focus:ring-rose-400">View</button>
         </Link>
       </div>

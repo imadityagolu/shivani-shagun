@@ -103,27 +103,27 @@ const router = createBrowserRouter([
         element: <Order/>
       },
       {
-        path: '/sections/saree',
+        path: '/Saree',
         element: <Saree/>
       },
       {
-        path: '/sections/lehnga',
+        path: '/Lehnga',
         element: <Lehnga/>
       },
       {
-        path: '/sections/chunni',
+        path: '/Chunni',
         element: <Chunni/>
       },
       {
-        path: '/sections/allproduct',
+        path: '/AllProduct',
         element: <AllProduct/>
       },
       {
-        path: '/sections/sute',
+        path: '/Sute',
         element: <Sute/>
       },
       {
-        path: '/sections/product/:id',
+        path: '/product/:id',
         element: <ProductDetail/>
       },
       {

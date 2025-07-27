@@ -515,7 +515,7 @@ function RelatedProductCard({ product, BACKEND_URL }) {
       {isNew && (
         <span className="absolute flex gap-1 items-center top-3 left-3 z-10 bg-rose-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow"><CiShoppingTag /> New</span>
       )}
-      <Link to={`/sections/product/${product._id}`} className="block">
+                      <Link to={`/product/${product._id}`} className="block">
         <div className="relative w-full aspect-[4/3] bg-gray-50 flex items-center justify-center overflow-hidden">
           <img
             src={`${BACKEND_URL}${images[imgIdx]}`}
@@ -553,7 +553,7 @@ function RelatedProductCard({ product, BACKEND_URL }) {
           ))}
           <span className="text-xs text-gray-500 ml-1">{avgRating > 0 ? avgRating.toFixed(1) : 'No rating'}</span>
         </div>
-        <Link to={`/sections/product/${product._id}`} className="mt-auto w-full block">
+                        <Link to={`/product/${product._id}`} className="mt-auto w-full block">
           <button className="w-full py-2 rounded-lg bg-rose-500 text-white font-bold text-sm shadow hover:bg-rose-600 transition-all focus:outline-none focus:ring-2 focus:ring-rose-400">View</button>
         </Link>
       </div>

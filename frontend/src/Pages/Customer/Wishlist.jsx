@@ -119,7 +119,7 @@ function Wishlist() {
                 {products.map((p) => (
                   <tr key={p._id} className="hover:bg-rose-50 transition">
                     <td className="px-4 py-3">
-                      <Link to={`/sections/product/${p._id}`}>
+                      <Link to={`/product/${p._id}`}>
                         {(p.image || (p.images && p.images[0])) ? (
                           <img src={`${import.meta.env.VITE_BACKEND_URL}${p.image || (p.images && p.images[0])}`} alt={p.product} className="w-20 h-20 object-contain rounded bg-gray-50 border" />
                         ) : (
@@ -128,7 +128,7 @@ function Wishlist() {
                       </Link>
                     </td>
                     <td className="px-4 py-3 font-bold text-rose-600">
-                      <Link to={`/sections/product/${p._id}`}>{p.product || 'No Name'}</Link>
+                      <Link to={`/product/${p._id}`}>{p.product || 'No Name'}</Link>
                     </td>
                     <td className="px-4 py-3 text-gray-500">{p.category || ''}</td>
                     <td className="px-4 py-3 text-gray-700 font-semibold">₹{p.mrp || ''}</td>

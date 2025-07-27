@@ -122,7 +122,7 @@ function Cart() {
                   {inStockProducts.map((p) => (
                     <tr key={p._id} className="hover:bg-rose-50 transition">
                       <td className="px-2 py-2 sm:px-4 sm:py-3">
-                        <Link to={`/sections/product/${p._id}`}>
+                        <Link to={`/product/${p._id}`}>
                           {(p.image || (p.images && p.images[0])) ? (
                             <img src={`${import.meta.env.VITE_BACKEND_URL}${p.image || (p.images && p.images[0])}`} alt={p.product} className="w-14 h-14 sm:w-20 sm:h-20 object-contain rounded bg-gray-50 border" />
                           ) : (
@@ -131,7 +131,7 @@ function Cart() {
                         </Link>
                       </td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 font-bold text-rose-600 text-xs sm:text-sm md:text-base">
-                        <Link to={`/sections/product/${p._id}`}>{p.product || 'No Name'}</Link>
+                        <Link to={`/product/${p._id}`}>{p.product || 'No Name'}</Link>
                       </td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-gray-500 text-xs sm:text-sm md:text-base">{p.category || ''}</td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-gray-500 text-xs sm:text-sm md:text-base">X 1</td>
