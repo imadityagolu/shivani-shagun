@@ -86,7 +86,7 @@ function AdminLogin() {
             {/* <Link to="/ForgetPassword" className="text-rose-500 hover:underline">Forgot password?</Link> */}
           </div>
           <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-2 sm:gap-0">
-            <a href="/Home" className="text-rose-500 font-medium hover:underline">Go to Website</a>
+            <Link to="/Home" className="text-rose-500 font-medium hover:underline">Go to Website</Link>
             <button
               onClick={handleSubmit}
               className="px-6 py-2 bg-rose-500 text-white rounded-md hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 w-full sm:w-auto"

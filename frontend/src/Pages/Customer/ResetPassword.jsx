@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaUserCircle } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 function ResetPassword() {
   const [email, setEmail] = useState('');
@@ -26,7 +27,7 @@ function ResetPassword() {
             className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-gray-800 placeholder-gray-400"
           />
           <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-2 sm:gap-0">
-            <a href="/Login" className="text-rose-500 font-medium hover:underline">Back to Sign in</a>
+            <Link to="/Login" className="text-rose-500 font-medium hover:underline">Back to Sign in</Link>
             <button
               onClick={handleSubmit}
               className="px-6 py-2 bg-rose-500 text-white rounded-md hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 w-full sm:w-auto"

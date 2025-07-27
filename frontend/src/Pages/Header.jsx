@@ -74,7 +74,7 @@ function Header() {
         </button>
       </div>
       {/* Side Nav for Mobile */}
-      <div
+            <div
         className={`fixed top-0 right-0 h-full w-2/3 max-w-xs bg-white shadow-lg z-50 transform transition-transform duration-300 sm:hidden ${open ? 'translate-x-0' : 'translate-x-full'}`}
         style={{ boxShadow: open ? '0 0 0 100vw rgba(0,0,0,0.3)' : 'none' }}
         onClick={() => setOpen(false)}
