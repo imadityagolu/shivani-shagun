@@ -8,6 +8,8 @@ import ShowBudget from './Components/ShowBudget';
 import Customers from './Components/Customers';
 import Orders from './Components/Orders';
 import Notifications from './Components/Notifications';
+import { ImStatsDots } from 'react-icons/im';
+import { FcManager, FcFeedback, FcCellPhone,FcAlarmClock } from "react-icons/fc";
 
 function AdminDashboard() {
   const [adminName, setAdminName] = useState('');
@@ -146,7 +148,7 @@ function AdminDashboard() {
             </li>
             <li>
               <button onClick={() => setSelected('budget')} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'budget' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
-                <FaMapMarkerAlt className="text-rose-400 w-4 h-4 mr-2" /> Budget
+                <ImStatsDots className="text-rose-400 w-4 h-4 mr-2" /> Budget
               </button>
             </li>
             <li>
@@ -211,7 +213,7 @@ function AdminDashboard() {
                 </li>
                 <li>
                   <button onClick={() => { setSelected('budget'); setSidebarOpen(false); }} className={`w-full px-4 py-2 text-left text-gray-800 bg-rose-100 rounded-md hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-2 ${selected === 'budget' ? 'bg-rose-200 text-rose-700 font-bold' : ''}`}>
-                    <FaMapMarkerAlt className="text-rose-400 w-4 h-4 mr-2" /> Budget
+                    <ImStatsDots className="text-rose-400 w-4 h-4 mr-2" /> Budget
                   </button>
                 </li>
                 <li>
@@ -274,22 +276,25 @@ function AdminDashboard() {
                   </div>
                   <div className="divide-y divide-gray-200">
                     <div className="flex items-center gap-3 py-3">
-                      <FaUserCircle className="w-5 h-5 text-blue-400" />
+                      <FcManager className="w-5 h-5 text-blue-400" />
                       <span className="text-xs sm:text-sm text-gray-500 font-medium">Full Name:</span>
                       <span className="text-sm sm:text-base text-gray-800 font-semibold">{adminName || 'Admin'}</span>
                     </div>
                     <div className="flex items-center gap-3 py-3">
-                      <svg className="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M16 12a4 4 0 01-8 0m8 0V8a4 4 0 10-8 0v4m8 0a4 4 0 01-8 0m8 0v4a4 4 0 01-8 0v-4" /></svg>
+                      {/* <svg className="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M16 12a4 4 0 01-8 0m8 0V8a4 4 0 10-8 0v4m8 0a4 4 0 01-8 0m8 0v4a4 4 0 01-8 0v-4" /></svg> */}
+                      <FcFeedback className="w-5 h-5 text-rose-400" />
                       <span className="text-xs sm:text-sm text-gray-500 font-medium">Email:</span>
                       <span className="text-sm sm:text-base text-gray-800 font-semibold">{adminEmail || 'Not provided'}</span>
                     </div>
                     <div className="flex items-center gap-3 py-3">
-                      <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" /></svg>
+                      {/* <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" /></svg> */}
+                      <FcCellPhone className="w-5 h-5 text-green-400" />
                       <span className="text-xs sm:text-sm text-gray-500 font-medium">Mobile:</span>
                       <span className="text-sm sm:text-base text-gray-800 font-semibold">{adminMobile || 'Not provided'}</span>
                     </div>
                     <div className="flex items-center gap-3 py-3">
-                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3" /></svg>
+                      {/* <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3" /></svg> */}
+                      <FcAlarmClock className="w-5 h-5 text-gray-400" />
                       <span className="text-xs sm:text-sm text-gray-500 font-medium">Last Login:</span>
                       <span className="text-sm sm:text-base text-gray-800 font-semibold">{adminLastLogin ? new Date(adminLastLogin).toLocaleString() : 'Never logged in'}</span>
                     </div>

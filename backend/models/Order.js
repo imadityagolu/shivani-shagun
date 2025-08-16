@@ -23,7 +23,14 @@ const orderSchema = new mongoose.Schema({
   paid: { type: Number, default: 0 },
   due: { type: Number, default: 0 },
   cost: { type: Number, default: 0 },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+// Update the updatedAt field before saving
+orderSchema.pre('save', function(next) {
+  this.updatedAt = new Date();
+  next();
 });
 
 module.exports = mongoose.model('Order', orderSchema); 

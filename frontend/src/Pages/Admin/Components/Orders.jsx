@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { FaBox, FaSearch, FaChevronDown, FaChevronUp, FaSave, FaCheckCircle } from 'react-icons/fa';
+import { FaBox, FaSearch, FaChevronDown, FaChevronUp, FaSave, FaCheckCircle, FaUndo, FaEdit, FaTrash, FaPlus, FaMinus } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+
 
 const ORDER_STATUSES = [
   'order placed',
@@ -24,6 +25,9 @@ function Orders() {
   const [expanded, setExpanded] = useState(null);
   const [statusEdits, setStatusEdits] = useState({});
   const [savingStatus, setSavingStatus] = useState({});
+  const [editingOrder, setEditingOrder] = useState(null);
+  const [editedProducts, setEditedProducts] = useState({});
+  const [savingReturn, setSavingReturn] = useState({});
 
   useEffect(() => {
     fetchOrders();
@@ -92,7 +96,17 @@ function Orders() {
       });
       const data = await res.json();
       if (res.ok) {
-        setOrders(orders => orders.map(o => o._id === orderId ? { ...o, status: 'complete' } : o));
+        // Update order in UI with the complete response data
+        setOrders(orders => orders.map(o => 
+          o._id === orderId 
+            ? { 
+                ...o, 
+                status: 'complete',
+                paid: data.order.paid || o.paid,
+                due: data.order.due || 0
+              }
+            : o
+        ));
         toast.success(data.message || 'Order marked as complete');
       } else {
         toast.error(data.message || 'Failed to update status');
@@ -101,6 +115,173 @@ function Orders() {
       toast.error('Failed to update status');
     }
     setSavingStatus(prev => ({ ...prev, [orderId]: false }));
+  };
+
+  const handleReturnOrder = (orderId) => {
+    const order = orders.find(o => o._id === orderId);
+    if (order) {
+      console.log('Original order data:', order);
+      const editData = {
+        products: order.products.map(p => ({ ...p })),
+        total: order.total,
+        paid: order.paid || 0,
+        due: order.due || 0
+      };
+      console.log('Edit data being set:', editData);
+      
+      setEditingOrder(orderId);
+      setEditedProducts(editData);
+    }
+  };
+
+  const handleQuantityChange = (orderId, productIndex, change) => {
+    setEditedProducts(prev => {
+      const newProducts = [...prev.products];
+      const product = newProducts[productIndex];
+      const oldQuantity = product.quantity || 1;
+      const newQuantity = Math.max(1, oldQuantity + change);
+      
+      product.quantity = newQuantity;
+      
+      // Recalculate totals
+      const newTotal = newProducts.reduce((sum, p) => sum + (p.mrp || 0) * p.quantity, 0);
+      const originalTotal = prev.total;
+      const originalPaid = prev.paid;
+      
+      // Calculate the change in total for this specific product
+      const productPrice = product.mrp || 0;
+      const quantityChange = newQuantity - oldQuantity;
+      const totalChange = productPrice * quantityChange;
+      
+      // Adjust paid amount proportionally based on the change
+      let newPaid = originalPaid;
+      if (totalChange !== 0) {
+        // If total increased, paid stays the same (due increases)
+        // If total decreased, reduce paid amount proportionally
+        if (totalChange < 0) {
+          newPaid = Math.max(0, originalPaid + totalChange);
+        }
+      }
+      
+      const newDue = Math.max(0, newTotal - newPaid);
+      
+      return {
+        ...prev,
+        products: newProducts,
+        total: newTotal,
+        paid: newPaid,
+        due: newDue
+      };
+    });
+  };
+
+  const handleRemoveProduct = (orderId, productIndex) => {
+    setEditedProducts(prev => {
+      const newProducts = prev.products.filter((_, index) => index !== productIndex);
+      
+      if (newProducts.length === 0) {
+        toast.error('Cannot remove all products from an order');
+        return prev;
+      }
+      
+      // Get the removed product details
+      const removedProduct = prev.products[productIndex];
+      const removedProductValue = (removedProduct.mrp || 0) * (removedProduct.quantity || 1);
+      
+      // Recalculate totals
+      const newTotal = newProducts.reduce((sum, p) => sum + (p.mrp || 0) * p.quantity, 0);
+      const originalTotal = prev.total;
+      const originalPaid = prev.paid;
+      
+      // Calculate the change in total
+      const totalChange = newTotal - originalTotal;
+      
+      // Adjust paid amount proportionally
+      let newPaid = originalPaid;
+      if (totalChange < 0) {
+        // If total decreased, reduce paid amount proportionally
+        // The removed product value should reduce the paid amount
+        newPaid = Math.max(0, originalPaid + totalChange);
+      }
+      
+      const newDue = Math.max(0, newTotal - newPaid);
+      
+      return {
+        ...prev,
+        products: newProducts,
+        total: newTotal,
+        paid: newPaid,
+        due: newDue
+      };
+    });
+  };
+
+  const handlePaidAmountChange = (orderId, newPaidAmount) => {
+    setEditedProducts(prev => {
+      const newPaid = Math.max(0, Math.min(newPaidAmount, prev.total));
+      const newDue = Math.max(0, prev.total - newPaid);
+      
+      return {
+        ...prev,
+        paid: newPaid,
+        due: newDue
+      };
+    });
+  };
+
+  const handleSaveReturn = async (orderId) => {
+    setSavingReturn(prev => ({ ...prev, [orderId]: true }));
+    try {
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+      const token = localStorage.getItem('token');
+      const returnData = editedProducts;
+      
+      console.log('Sending return data to backend:', returnData);
+      console.log('Order ID:', orderId);
+      
+      const res = await fetch(`${BACKEND_URL}/api/admin/orders/${orderId}/return`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(returnData)
+      });
+      
+      const data = await res.json();
+      console.log('Backend response:', data);
+      
+      if (res.ok) {
+        // Update order in UI
+        setOrders(orders => orders.map(o => 
+          o._id === orderId 
+            ? { 
+                ...o, 
+                products: returnData.products,
+                total: returnData.total,
+                paid: returnData.paid,
+                due: returnData.due
+              }
+            : o
+        ));
+        
+        // Reset editing state
+        setEditingOrder(null);
+        setEditedProducts({});
+        toast.success('Order updated successfully');
+      } else {
+        toast.error(data.message || 'Failed to update order');
+      }
+    } catch (err) {
+      console.error('Error saving return:', err);
+      toast.error('Failed to update order');
+    }
+    setSavingReturn(prev => ({ ...prev, [orderId]: false }));
+  };
+
+  const handleCancelReturn = () => {
+    setEditingOrder(null);
+    setEditedProducts({});
   };
 
   const formatDate = (dateString) => {
@@ -277,17 +458,58 @@ function Orders() {
                     <td colSpan={7} className="bg-rose-50 px-4 py-4">
                       {/* Order Details */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Edit Mode Banner */}
+                        {editingOrder === order._id && order.mode === 'shop' && (
+                          <div className="col-span-1 md:col-span-2 mb-4 p-3 bg-blue-100 border border-blue-300 rounded-lg">
+                            <div className="flex items-center gap-2 text-blue-800 font-semibold">
+                              <FaEdit className="w-4 h-4" />
+                              Editing Order - You can modify products, quantities, and prices
+                            </div>
+                          </div>
+                        )}
+                        
                         <div>
                           <h4 className="font-bold text-gray-700 mb-2">Customer Details</h4>
                           <div className="text-sm text-gray-700 mb-1"><span className="font-semibold">Name:</span> {order.customer}</div>
                           <div className="text-sm text-gray-700 mb-1"><span className="font-semibold">Mobile:</span> {order.mobile}</div>
                           <div className="text-sm text-gray-700 mb-1"><span className="font-semibold">Order Time:</span> {formatDate(order.createdAt)}</div>
                           <div className="text-sm text-gray-700 mb-1"><span className="font-semibold">Payment:</span> {order.paymentMethod}</div>
-                          <div className="text-sm text-gray-700 mb-1"><span className="font-semibold">Total:</span> ₹{order.total}</div>
+                          <div className="text-sm text-gray-700 mb-1">
+                            <span className="font-semibold">Total:</span> 
+                            <span className={editingOrder === order._id && order.mode === 'shop' ? 'text-blue-600 font-bold' : ''}>
+                              ₹{editingOrder === order._id && order.mode === 'shop' ? editedProducts.total : order.total}
+                            </span>
+                            {editingOrder === order._id && order.mode === 'shop' && (
+                              <span className="text-xs text-gray-500 ml-2">
+                                (Products: ₹{editedProducts.products.reduce((sum, p) => sum + (p.mrp || 0) * p.quantity, 0)})
+                              </span>
+                            )}
+                          </div>
                           {order.mode === 'shop' && (
                             <>
-                              <div className="text-sm text-gray-700 mb-1"><span className="font-semibold">Paid:</span> ₹{order.paid || 0}</div>
-                              <div className="text-sm text-gray-700 mb-1"><span className="font-semibold">Due:</span> ₹{order.due || 0}</div>
+                                                        <div className="text-sm text-gray-700 mb-1">
+                            <span className="font-semibold">Paid:</span> 
+                            {editingOrder === order._id && order.mode === 'shop' ? (
+                              <input
+                                type="number"
+                                value={editedProducts.paid}
+                                onChange={(e) => handlePaidAmountChange(order._id, parseFloat(e.target.value) || 0)}
+                                className="ml-2 px-2 py-1 border rounded text-blue-600 font-bold w-20 text-sm"
+                                min="0"
+                                max={editedProducts.total}
+                              />
+                            ) : (
+                              <span className={editingOrder === order._id ? 'text-blue-600 font-bold' : ''}>
+                                ₹{editingOrder === order._id ? editedProducts.paid : (order.paid || 0)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-700 mb-1">
+                            <span className="font-semibold">Due:</span> 
+                            <span className={editingOrder === order._id ? 'text-blue-600 font-bold' : ''}>
+                              ₹{editingOrder === order._id ? editedProducts.due : (order.due || 0)}
+                            </span>
+                          </div>
                             </>
                           )}
                           <div className="text-sm text-gray-700 mb-1"><span className="font-semibold">Address:</span> {order.address}</div>
@@ -345,10 +567,13 @@ function Orders() {
                                   <th className="px-2 py-2 text-xs font-semibold text-gray-700 text-left">Category</th>
                                   <th className="px-2 py-2 text-xs font-semibold text-gray-700 text-left">MRP</th>
                                   <th className="px-2 py-2 text-xs font-semibold text-gray-700 text-left">Quantity</th>
+                                  {editingOrder === order._id && order.mode === 'shop' && (
+                                    <th className="px-2 py-2 text-xs font-semibold text-gray-700 text-left">Actions</th>
+                                  )}
                                 </tr>
                               </thead>
                               <tbody>
-                                {order.products.map((p, idx) => (
+                                {(editingOrder === order._id && order.mode === 'shop' ? editedProducts.products : order.products).map((p, idx) => (
                                   <tr key={p._id || idx} className="border-b last:border-0">
                                     <td className="px-2 py-2">
                                       {(p.image || (p.images && p.images[0])) ? (
@@ -360,15 +585,113 @@ function Orders() {
                                     <td className="px-2 py-2 font-bold text-rose-600 text-xs sm:text-sm">{p.product || 'No Name'}</td>
                                     <td className="px-2 py-2 text-gray-500 text-xs sm:text-sm">{p.category || ''}</td>
                                     <td className="px-2 py-2 text-gray-700 font-semibold text-xs sm:text-sm">₹{p.mrp || ''}</td>
-                                    <td className="px-2 py-2 text-gray-700 font-semibold text-xs sm:text-sm">{p.quantity || 1}</td>
+                                    <td className="px-2 py-2 text-gray-700 font-semibold text-xs sm:text-sm">
+                                      {editingOrder === order._id && order.mode === 'shop' ? (
+                                        <div className="flex items-center gap-1">
+                                          <button
+                                            onClick={() => handleQuantityChange(order._id, idx, -1)}
+                                            className="w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs"
+                                            disabled={p.quantity <= 1}
+                                          >
+                                            <FaMinus className="w-3 h-3" />
+                                          </button>
+                                          <span className="px-2 py-1 bg-gray-100 rounded min-w-[2rem] text-center">{p.quantity || 1}</span>
+                                          <button
+                                            onClick={() => handleQuantityChange(order._id, idx, 1)}
+                                            className="w-6 h-6 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center text-xs"
+                                          >
+                                            <FaPlus className="w-3 h-3" />
+                                          </button>
+                                        </div>
+                                      ) : (
+                                        p.quantity || 1
+                                      )}
+                                    </td>
+                                    {editingOrder === order._id && order.mode === 'shop' && (
+                                      <td className="px-2 py-2">
+                                        <button
+                                          onClick={() => handleRemoveProduct(order._id, idx)}
+                                          className="w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs"
+                                          title="Remove product"
+                                        >
+                                          <FaTrash className="w-3 h-3" />
+                                        </button>
+                                      </td>
+                                    )}
                                   </tr>
                                 ))}
                               </tbody>
                             </table>
                           </div>
+                          
+                          {/* Edit Mode Summary */}
+                          {editingOrder === order._id && order.mode === 'shop' && (
+                            <div className="mt-4 p-3 bg-gray-50 rounded-lg border">
+                              <h5 className="font-semibold text-gray-700 mb-2">Order Summary</h5>
+                              <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <span className="font-medium">Original Total:</span> ₹{order.total}
+                                </div>
+                                <div>
+                                  <span className="font-medium">New Total:</span> ₹{editedProducts.total}
+                                </div>
+                                <div>
+                                  <span className="font-medium">Original Paid:</span> ₹{order.paid || 0}
+                                </div>
+                                <div>
+                                  <span className="font-medium">New Paid:</span> ₹{editedProducts.paid}
+                                </div>
+                                <div>
+                                  <span className="font-medium">Original Due:</span> ₹{order.due || 0}
+                                </div>
+                                <div>
+                                  <span className="font-medium">New Due:</span> ₹{editedProducts.due}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Edit Mode Controls */}
+                          {editingOrder === order._id && order.mode === 'shop' && (
+                            <div className="mt-4 flex justify-end gap-2">
+                              <button
+                                onClick={handleCancelReturn}
+                                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-bold shadow transition flex items-center gap-2"
+                              >
+                                <FaEdit className="w-4 h-4" />
+                                Cancel
+                              </button>
+                              <button
+                                onClick={() => handleSaveReturn(order._id)}
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold shadow transition flex items-center gap-2"
+                                disabled={savingReturn[order._id]}
+                              >
+                                {savingReturn[order._id] ? (
+                                  <span className="animate-spin h-4 w-4 border-b-2 border-white rounded-full"></span>
+                                ) : (
+                                  <FaSave className="w-4 h-4" />
+                                )}
+                                Save Changes
+                              </button>
+                            </div>
+                          )}
                         </div>
-                        {order.status === 'due' && (
-                          <div className="flex justify-end mt-4">
+                        {/* Action Buttons */}
+                        <div className="flex justify-end mt-4 gap-2">
+                          {/* Return Button - Always available for shop mode orders */}
+                          {order.mode === 'shop' && (
+                            <button
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold shadow transition flex items-center gap-2"
+                              onClick={() => handleReturnOrder(order._id)}
+                              disabled={savingStatus[order._id] || savingReturn[order._id]}
+                            >
+                              <FaUndo className="w-4 h-4" />
+                              Return
+                            </button>
+                          )}
+                          
+                          {/* Mark as Complete Button - Show whenever there's a due amount */}
+                          {(order.due > 0 || (editingOrder === order._id && editedProducts.due > 0)) && (
                             <button
                               className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold shadow transition"
                               onClick={() => handleMarkComplete(order._id)}
@@ -376,8 +699,24 @@ function Orders() {
                             >
                               {savingStatus[order._id] ? 'Marking...' : 'Mark as Complete'}
                             </button>
-                          </div>
-                        )}
+                          )}
+                          
+                          {/* Status Display for completed orders with no due */}
+                          {order.status === 'complete' && order.due === 0 && (
+                            <div className="flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold">
+                              <FaCheckCircle className="w-5 h-5 mr-2" />
+                              Order Completed
+                            </div>
+                          )}
+                          
+                          {/* Status Display for completed orders with due */}
+                          {order.status === 'complete' && order.due > 0 && (
+                            <div className="flex items-center px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg font-semibold">
+                              <FaCheckCircle className="w-5 h-5 mr-2" />
+                              Order Completed (Due: ₹{order.due})
+                            </div>
+                          )}
+                        </div>
                       </div>
                       {/* Order Status Progress Bar */}
                       {order.status !== 'cancelled' && order.mode !== 'shop' && (

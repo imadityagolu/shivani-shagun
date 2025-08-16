@@ -83,6 +83,7 @@ app.post('/api/customer/order', auth('customer'), customerController.placeOrder)
 app.get('/api/customer/orders', auth('customer'), customerController.getMyOrders);
 app.get('/api/admin/orders', auth('admin'), adminController.getAllOrders);
 app.patch('/api/admin/orders/:orderId/status', auth('admin'), adminController.updateOrderStatus);
+app.patch('/api/admin/orders/:orderId/return', auth('admin'), adminController.updateOrderReturn);
 app.patch('/api/customer/orders/:orderId/cancel', auth('customer'), customerController.cancelOrder);
 app.post('/api/admin/orders', auth('admin'), adminController.createOrder);
 
@@ -117,6 +118,7 @@ app.get('/api/customer/profile', auth('customer'), (req, res) => {
 });
 
 app.get('/api/admin/notifications', auth('admin'), adminController.getNotifications);
+app.patch('/api/admin/notifications/:notificationId/read', auth('admin'), adminController.markNotificationAsRead);
 app.patch('/api/admin/notifications/read-all', auth('admin'), adminController.markAllNotificationsAsRead);
 
 // Cart routes

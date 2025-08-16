@@ -171,6 +171,122 @@ exports.updateOrderStatus = async (req, res) => {
   }
 }; 
 
+exports.updateOrderReturn = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { products, total, paid, due } = req.body;
+    
+    if (!products || !Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({ message: 'Products array is required and cannot be empty' });
+    }
+    
+    if (typeof total !== 'number' || typeof paid !== 'number' || typeof due !== 'number') {
+      return res.status(400).json({ message: 'Total, paid, and due must be numbers' });
+    }
+    
+    // Find the order
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    
+    // Only allow updates for shop mode orders
+    if (order.mode !== 'shop') {
+      return res.status(400).json({ message: 'Can only update shop mode orders' });
+    }
+    
+    // Get the Product model
+    const Product = require('../models/Product');
+    
+    // Calculate total quantity
+    const totalQuantity = products.reduce((sum, p) => sum + (Number(p.quantity) || 1), 0);
+    
+    // Handle product stock updates
+    try {
+      console.log('Original order products:', order.products);
+      console.log('New order products:', products);
+      
+      // First, restore the original order quantities to stock
+      for (const originalProduct of order.products) {
+        if (originalProduct._id) {
+          const quantityToRestore = Number(originalProduct.quantity) || 1;
+          console.log(`Restoring ${quantityToRestore} units of product ${originalProduct._id} to stock`);
+          await Product.findByIdAndUpdate(originalProduct._id, { 
+            $inc: { quantity: quantityToRestore } 
+          });
+        }
+      }
+      
+      // Then, deduct the new order quantities from stock
+      for (const newProduct of products) {
+        if (newProduct._id) {
+          const quantityToDeduct = Number(newProduct.quantity) || 1;
+          console.log(`Deducting ${quantityToDeduct} units of product ${newProduct._id} from stock`);
+          await Product.findByIdAndUpdate(newProduct._id, { 
+            $inc: { quantity: -quantityToDeduct } 
+          });
+        }
+      }
+      
+      // Verify stock updates by checking final quantities
+      console.log('Verifying stock updates...');
+      for (const newProduct of products) {
+        if (newProduct._id) {
+          const updatedProduct = await Product.findById(newProduct._id);
+          if (updatedProduct) {
+            console.log(`Product ${newProduct._id} final stock: ${updatedProduct.quantity}`);
+          }
+        }
+      }
+      
+      console.log('Stock updates completed successfully');
+    } catch (stockErr) {
+      console.error('Failed to update product stock:', stockErr);
+      return res.status(500).json({ message: 'Failed to update product stock' });
+    }
+    
+    // Update the order
+    const updatedOrder = await Order.findByIdAndUpdate(orderId, {
+      products,
+      total,
+      paid,
+      due,
+      quantity: totalQuantity,
+      updatedAt: new Date()
+    }, { new: true });
+    
+    if (!updatedOrder) {
+      return res.status(500).json({ message: 'Failed to update order' });
+    }
+    
+    // Add notification to admin
+    try {
+      const admin = await Admin.findOne();
+      if (admin) {
+        admin.notifications.unshift({
+          title: 'Order Updated',
+          message: `Order (${orderId}) has been updated with new products/quantities.`,
+          timestamp: new Date(),
+          read: false
+        });
+        await admin.save();
+      }
+    } catch (notifyErr) {
+      // Log but do not block order update
+      console.error('Failed to add admin notification for order update:', notifyErr);
+    }
+    
+    res.json({ 
+      message: 'Order updated successfully', 
+      order: updatedOrder 
+    });
+    
+  } catch (err) {
+    console.error('Order update error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
 exports.getNotifications = async (req, res) => {
   try {
     const admin = await Admin.findById(req.user.id);
@@ -192,7 +308,28 @@ exports.markAllNotificationsAsRead = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
-}; 
+};
+
+exports.markNotificationAsRead = async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+    const admin = await Admin.findById(req.user.id);
+    if (!admin) return res.status(404).json({ message: 'Admin not found' });
+    
+    // Find the specific notification and mark it as read
+    const notification = admin.notifications.id(notificationId);
+    if (!notification) {
+      return res.status(404).json({ message: 'Notification not found' });
+    }
+    
+    notification.read = true;
+    await admin.save();
+    
+    res.json({ message: 'Notification marked as read' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
 
 exports.createOrder = async (req, res) => {
   try {
