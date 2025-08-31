@@ -2,14 +2,15 @@ const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
   customer: { type: String, required: true },
-  mobile: { type: String, required: true },
-  address: { type: String, required: true },
+  mobile: { type: String, required: false },
+  address: { type: String, required: false },
   products: [
     {
       _id: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
       product: String,
       category: String,
       mrp: Number,
+      rate: Number,
       image: String,
       images: [String],
       quantity: { type: Number, default: 1 }
@@ -33,4 +34,4 @@ orderSchema.pre('save', function(next) {
   next();
 });
 
-module.exports = mongoose.model('Order', orderSchema); 
+module.exports = mongoose.model('Order', orderSchema);

@@ -337,8 +337,8 @@ exports.createOrder = async (req, res) => {
     if (!products || !Array.isArray(products) || products.length === 0) {
       return res.status(400).json({ message: 'No products in order' });
     }
-    if (!customer || !mobile || !address) {
-      return res.status(400).json({ message: 'Customer name, mobile, and address are required' });
+    if (!customer) {
+      return res.status(400).json({ message: 'Customer name is required' });
     }
     // Ensure quantity is set for each product
     const productsWithQty = products.map(p => ({ ...p, quantity: p.quantity ? Number(p.quantity) : 1 }));
@@ -409,4 +409,4 @@ exports.createOrder = async (req, res) => {
     console.error('Request body:', req.body);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
-}; 
+};

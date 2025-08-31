@@ -26,18 +26,20 @@ function generate8DigitId() {
 exports.addProduct = async (req, res) => {
   try {
     let { seller, product, description, category, color, quantity, rate, mrp, date, images } = req.body;
-    if (!seller || !product || !description || !category || !color || !quantity || !rate || !mrp || !images) {
-      return res.status(400).json({ message: 'All fields are required.' });
+    if (!product || !category || !quantity || !rate || !mrp) {
+      return res.status(400).json({ message: 'Product, category, quantity, rate, and mrp are required.' });
     }
     
-    // Validate color structure
-    if (!color.name || !color.hex) {
-      return res.status(400).json({ message: 'Color must have both name and hex value.' });
+    // Validate color structure if provided and not empty
+    if (color && typeof color === 'object' && (color.name || color.hex) && (!color.name || !color.hex)) {
+      return res.status(400).json({ message: 'If color is provided, it must have both name and hex value.' });
     }
     
-    // Validate images array
-    if (!Array.isArray(images) || images.length === 0) {
-      return res.status(400).json({ message: 'At least one image is required.' });
+    // Validate images array if provided and not empty
+    if (images && Array.isArray(images) && images.length > 0) {
+      // Images are provided and valid, continue processing
+    } else if (images && (!Array.isArray(images))) {
+      return res.status(400).json({ message: 'Images must be an array.' });
     }
     
     // Parse date to real Date object if provided, else use now
@@ -52,6 +54,12 @@ exports.addProduct = async (req, res) => {
         dateObj = new Date(date);
       }
     }
+    // Set default values for optional fields
+    seller = seller || "UNKNOWN";
+    description = description || "";
+    color = color || { name: "", hex: "" };
+    images = images || [];
+    
     const newProduct = new Product({ seller, product, description, category, color, quantity, rate, mrp, date: dateObj, images });
     await newProduct.save();
     res.status(201).json({ message: 'Product added successfully.' });
@@ -258,4 +266,4 @@ exports.getProductById = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
-}; 
+};

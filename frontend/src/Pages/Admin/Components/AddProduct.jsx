@@ -278,57 +278,68 @@ function AddProduct() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Validate all fields except date (which will be auto-generated)
-    const requiredFields = ['seller', 'product', 'description', 'category', 'quantity', 'rate', 'mrp'];
+    // Validate required fields except date (which will be auto-generated)
+    const requiredFields = ['product', 'category', 'quantity', 'rate', 'mrp'];
     for (const key of requiredFields) {
       if (!form[key]) {
-        toast.error('All fields are required');
+        toast.error(`${key.charAt(0).toUpperCase() + key.slice(1)} is required`);
         return;
       }
     }
-    // Validate color separately
-    if (!form.color.name || !form.color.hex) {
-      toast.error('Color is required');
-      return;
+    
+    // Set default values for optional fields
+    let formData = {...form};
+    if (!formData.seller) {
+      formData.seller = "UNKNOWN";
     }
-    if (!form.images || form.images.length === 0) {
-      toast.error('At least one image is required');
-      return;
+    // Handle color field - if no color is selected, make both fields empty
+    if (formData.color) {
+      if (!formData.color.name && !formData.color.hex) {
+        // If both name and hex are empty, keep them empty
+        formData.color = { name: "", hex: "" };
+      } else if (!formData.color.name || !formData.color.hex) {
+        // If one is filled but not the other, set the missing one to a default
+        formData.color.name = formData.color.name || "Unknown";
+        formData.color.hex = formData.color.hex || "#CCCCCC";
+      }
     }
     try {
-      // 1. Upload all images to backend
+      // 1. Upload all images to backend (if any)
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
       const token = localStorage.getItem('token');
       const currentDate = getCurrentDate();
-      const uploadedImagePaths = [];
+      let uploadedImagePaths = []; // Changed from const to let
 
-      // Upload each image
-      for (let i = 0; i < form.images.length; i++) {
-        const imageForm = new FormData();
-        imageForm.append('image', form.images[i]);
-        imageForm.append('seller', form.seller);
-        imageForm.append('product', form.product);
-        imageForm.append('date', currentDate);
-        imageForm.append('index', i); // Add index for multiple images
+      // Upload each image if there are any
+      if (formData.images && Array.isArray(formData.images) && formData.images.length > 0) {
+        for (let i = 0; i < formData.images.length; i++) {
+          const imageForm = new FormData();
+          imageForm.append('image', formData.images[i]);
+          imageForm.append('seller', formData.seller);
+          imageForm.append('product', formData.product);
+          imageForm.append('date', currentDate);
+          imageForm.append('index', i); // Add index for multiple images
 
         const uploadRes = await fetch(`${BACKEND_URL}/api/products/upload`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
-          body: imageForm
-        });
-        const uploadData = await uploadRes.json();
-        if (!uploadRes.ok) {
-          toast.error(uploadData.message || `Image ${i + 1} upload failed`);
-          return;
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`
+            },
+            body: imageForm
+          });
+          const uploadData = await uploadRes.json();
+          if (!uploadRes.ok) {
+            toast.error(uploadData.message || `Image ${i + 1} upload failed`);
+            return;
+          }
+          uploadedImagePaths.push(uploadData.imagePath);
         }
-        uploadedImagePaths.push(uploadData.imagePath);
       }
+      // No need for else block since uploadedImagePaths is already initialized as an empty array
 
       // 2. Create product with image paths
       const payload = {
-        ...form,
+        ...formData,
         date: currentDate,
         images: uploadedImagePaths
       };
@@ -377,10 +388,9 @@ function AddProduct() {
                 value={form.seller}
                 onChange={handleChange}
                 onFocus={() => setShowSellerDropdown(true)}
-                placeholder="Seller"
+                placeholder="Seller (optional, defaults to UNKNOWN)"
                 autoComplete="off"
                 className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm"
-                required
               />
               <button type="button" onClick={() => setShowSellerPopup(true)} className="bg-rose-500 text-white rounded-full w-9 h-9 flex items-center justify-center text-xl font-bold hover:bg-rose-600 transition" title="Add Seller">+</button>
               {showSellerDropdown && filteredSellers.length > 0 && (
@@ -410,8 +420,8 @@ function AddProduct() {
           </div>
           {/* Description */}
           <div className="col-span-1 sm:col-span-2 flex flex-col gap-2">
-            <label className="flex items-center gap-2 text-gray-700 font-semibold mb-1"><FaAlignLeft className="text-rose-400" /> Description</label>
-            <textarea name="description" value={form.description} onChange={handleChange} placeholder="Description" className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm resize-none" required />
+            <label className="flex items-center gap-2 text-gray-700 font-semibold mb-1"><FaAlignLeft className="text-rose-400" /> Description (optional)</label>
+            <textarea name="description" value={form.description} onChange={handleChange} placeholder="Description" className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm resize-none" />
           </div>
           {/* Category */}
           <div className="col-span-1 flex flex-col gap-2">
@@ -442,9 +452,8 @@ function AddProduct() {
                 name="color" 
                 value={form.color.name} 
                 onChange={(e) => setForm(prev => ({ ...prev, color: { ...prev.color, name: e.target.value } }))}
-                placeholder="e.g., Red, Blue, Pink, etc." 
+                placeholder="e.g., Red, Blue, Pink, etc. (optional)" 
                 className="flex-1 px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm" 
-                required 
               />
               <button
                 type="button"
@@ -511,7 +520,6 @@ function AddProduct() {
               multiple
               onChange={handleChange} 
               className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow-sm bg-white" 
-              required 
             />
             {form.images.length > 0 && (
               <div className="mt-2">

@@ -302,12 +302,14 @@ function Orders() {
   const filteredOrders = orders.filter(order => {
     // Search by customer name, email, mobile, or order ID
     const customer = order.customer || {};
+    const address = order.address || {};
     const searchText = search.toLowerCase();
     const matchesSearch =
       order._id?.toLowerCase().includes(searchText) ||
       customer.name?.toLowerCase().includes(searchText) ||
       customer.email?.toLowerCase().includes(searchText) ||
-      customer.mobile?.toString().includes(searchText);
+      customer.mobile?.toString().includes(searchText) ||
+      address.name?.toLowerCase().includes(searchText);
     // Payment filter
     const matchesPayment = paymentFilter ? order.paymentMethod === paymentFilter : true;
     // Status filter
@@ -359,6 +361,8 @@ function Orders() {
             <option value="">All Payments</option>
             <option value="Cash on Delivery">Cash on Delivery</option>
             <option value="Online Payment">Online Payment</option>
+            <option value="cash">cash</option>
+            <option value="online">online</option>
           </select>
           <select
             value={statusFilter}
@@ -763,4 +767,4 @@ function Orders() {
   );
 }
 
-export default Orders; 
+export default Orders;

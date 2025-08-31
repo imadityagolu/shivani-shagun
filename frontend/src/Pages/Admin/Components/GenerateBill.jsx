@@ -82,8 +82,8 @@ function GenerateBill() {
   const due = Math.max(0, total - Number(paid || 0));
 
   const handlePlaceOrder = async () => {
-    if (!customer.name || !customer.mobile) {
-      toast.error('Please fill customer name and mobile');
+    if (!customer.name) {
+      toast.error('Please fill customer name');
       return;
     }
     if (selectedProducts.length === 0) {
@@ -142,8 +142,8 @@ function GenerateBill() {
   };
 
   const handlePreview = () => {
-    if (!customer.name || !customer.mobile) {
-      toast.error('Please fill customer name and mobile');
+    if (!customer.name) {
+      toast.error('Please fill customer name');
       return;
     }
     if (selectedProducts.length === 0) {
@@ -176,7 +176,7 @@ function GenerateBill() {
 
   // Add new product directly from search
   const handleQuickAddNewProduct = () => {
-    setPendingNewProduct({ product: search, category: '', mrp: '', quantity: 1 });
+    setPendingNewProduct({ product: search, category: '', mrp: '', rate: '', quantity: 1 });
     setShowProductDropdown(false);
   };
   const handlePendingNewProductChange = (e) => {
@@ -184,7 +184,7 @@ function GenerateBill() {
     setPendingNewProduct(prev => ({ ...prev, [name]: value }));
   };
   const handlePendingNewProductSubmit = () => {
-    if (!pendingNewProduct.product || !pendingNewProduct.category || !pendingNewProduct.mrp || !pendingNewProduct.quantity) {
+    if (!pendingNewProduct.product || !pendingNewProduct.category || !pendingNewProduct.mrp || !pendingNewProduct.rate || !pendingNewProduct.quantity) {
       toast.error('Please fill all fields for new product');
       return;
     }
@@ -195,6 +195,7 @@ function GenerateBill() {
         product: pendingNewProduct.product,
         category: pendingNewProduct.category,
         mrp: pendingNewProduct.mrp,
+        rate: pendingNewProduct.rate,
         quantity: pendingNewProduct.quantity,
         images: []
       }
@@ -331,7 +332,7 @@ function GenerateBill() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <input name="name" value={customer.name} onChange={handleCustomerChange} placeholder="Customer Name" className="px-4 py-2 border rounded w-full" required />
         <input name="address" value={customer.address} onChange={handleCustomerChange} placeholder="Address (optional)" className="px-4 py-2 border rounded w-full" />
-        <input name="mobile" value={customer.mobile} onChange={handleCustomerChange} placeholder="Mobile Number" className="px-4 py-2 border rounded w-full" required />
+        <input name="mobile" value={customer.mobile} onChange={handleCustomerChange} placeholder="Mobile Number (optional)" className="px-4 py-2 border rounded w-full" />
       </div>
       {/* Product Search and Select */}
       <div className="mb-4">
@@ -400,6 +401,15 @@ function GenerateBill() {
             name="mrp"
             placeholder="MRP"
             value={pendingNewProduct.mrp}
+            onChange={handlePendingNewProductChange}
+            className="px-2 py-1 border rounded"
+            required
+          />
+          <input
+            type="number"
+            name="rate"
+            placeholder="Rate"
+            value={pendingNewProduct.rate}
             onChange={handlePendingNewProductChange}
             className="px-2 py-1 border rounded"
             required
