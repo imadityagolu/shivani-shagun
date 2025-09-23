@@ -300,16 +300,13 @@ function Orders() {
 
   // Filtering logic
   const filteredOrders = orders.filter(order => {
-    // Search by customer name, email, mobile, or order ID
-    const customer = order.customer || {};
-    const address = order.address || {};
+    // Search by customer name, mobile, or order ID
     const searchText = search.toLowerCase();
     const matchesSearch =
       order._id?.toLowerCase().includes(searchText) ||
-      customer.name?.toLowerCase().includes(searchText) ||
-      customer.email?.toLowerCase().includes(searchText) ||
-      customer.mobile?.toString().includes(searchText) ||
-      address.name?.toLowerCase().includes(searchText);
+      order.customer?.toLowerCase().includes(searchText) ||
+      order.mobile?.toString().includes(searchText) ||
+      order.address?.toLowerCase().includes(searchText);
     // Payment filter
     const matchesPayment = paymentFilter ? order.paymentMethod === paymentFilter : true;
     // Status filter
@@ -346,7 +343,7 @@ function Orders() {
           <FaSearch className="text-gray-400" />
           <input
             type="text"
-            placeholder="Search by customer, email, mobile, order ID..."
+            placeholder="Search by customer name, mobile number, order ID..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="px-3 py-2 border rounded-lg w-full sm:w-80 md:w-96 focus:outline-none focus:ring-2 focus:ring-rose-200"

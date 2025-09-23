@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Header from './Header';
-import banner1 from '../Images/banners/banner-1.png';
-import banner2 from '../Images/banners/banner-2.png';
+import Slideshow from './Slideshow';
 import leh1 from '../Images/store/leh-1.mp4';
 import leh2 from '../Images/store/leh-2.mp4';
 import sareeImg from '../Images/store/saree.JPG';
@@ -14,70 +13,19 @@ import { FaStar } from 'react-icons/fa';
 import { CiShoppingTag } from "react-icons/ci";
 
 function Home() {
-  const images = [banner1, banner2];
-  const [index, setIndex] = useState(0);
-  const [fade, setFade] = useState(true);
-  const [autoSlide, setAutoSlide] = useState(true);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (!autoSlide) return;
-    const interval = setInterval(() => {
-      setFade(false);
-      setTimeout(() => {
-        setIndex((prev) => (prev + 1) % images.length);
-        setFade(true);
-      }, 400);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [images.length, autoSlide]);
 
-  const goToPrev = () => {
-    setFade(false);
-    setTimeout(() => {
-      setIndex((prev) => (prev - 1 + images.length) % images.length);
-      setFade(true);
-    }, 400);
-    setAutoSlide(false);
-  };
-
-  const goToNext = () => {
-    setFade(false);
-    setTimeout(() => {
-      setIndex((prev) => (prev + 1) % images.length);
-      setFade(true);
-    }, 400);
-    setAutoSlide(false);
-  };
 
   return (
     <>
       <Header />
+      
       {/* slideshow */}
-      <div className='flex justify-center items-center bg-white pt-2 pb-4 relative mx-2 sm:mx-0'>
-        <button
-          onClick={goToPrev}
-          className='absolute left-2 sm:left-8 z-10 bg-white/70 hover:bg-white rounded-full p-2 shadow transition'
-          aria-label='Previous'
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-rose-500">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-          </svg>
-        </button>
-        <img
-          src={images[index]}
-          alt={`Banner ${index + 1}`}
-          className={`rounded-lg shadow-md max-h-96 w-auto object-cover transition-opacity duration-500 ${fade ? 'opacity-100' : 'opacity-0'}`}
-        />
-        <button
-          onClick={goToNext}
-          className='absolute right-2 sm:right-8 z-10 bg-white/70 hover:bg-white rounded-full p-2 shadow transition'
-          aria-label='Next'
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-rose-500">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-          </svg>
-        </button>
-      </div>
+      <Slideshow />
       
       {/* Category Circles */}
       <div className="flex flex-row justify-center gap-4 sm:gap-8 py-8 overflow-x-auto scrollbar-hide min-w-0 pl-0 pr-0 sm:pl-0 sm:pr-0 snap-x snap-mandatory">
