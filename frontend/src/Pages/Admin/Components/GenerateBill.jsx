@@ -12,6 +12,7 @@ function GenerateBill() {
   const [customer, setCustomer] = useState({ name: '', address: '', mobile: '' });
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [paid, setPaid] = useState('');
+  const [billDate, setBillDate] = useState('');
   const [showPDF, setShowPDF] = useState(false);
   const [orderData, setOrderData] = useState(null);
   const [showProductDropdown, setShowProductDropdown] = useState(false);
@@ -114,7 +115,8 @@ function GenerateBill() {
       paymentMethod,
       paid,
       due,
-      cost
+      cost,
+      customDate: billDate || null
     };
     try {
       const res = await fetch(`${BACKEND_URL}/api/admin/orders`, {
@@ -262,15 +264,15 @@ function GenerateBill() {
     });
     // Calculate due for PDF
     const due = Math.max(0, order.total - Number(order.paid || 0));
-    // Get current date and time in AM/PM format
-    const now = new Date();
+    // Get date and time in AM/PM format - use custom date if provided, otherwise current date
+    const dateToUse = order.createdAt ? new Date(order.createdAt) : new Date();
     const pad = n => n.toString().padStart(2, '0');
-    let hours = now.getHours();
-    const minutes = pad(now.getMinutes());
+    let hours = dateToUse.getHours();
+    const minutes = pad(dateToUse.getMinutes());
     const ampm = hours >= 12 ? 'PM' : 'AM';
     hours = hours % 12;
     hours = hours ? hours : 12;
-    const dateStr = `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()} ${pad(hours)}:${minutes} ${ampm}`;
+    const dateStr = `${pad(dateToUse.getDate())}-${pad(dateToUse.getMonth() + 1)}-${dateToUse.getFullYear()} ${pad(hours)}:${minutes} ${ampm}`;
     return (
       <Document>
         <Page size="A4" style={styles.page}>
@@ -333,6 +335,25 @@ function GenerateBill() {
         <input name="name" value={customer.name} onChange={handleCustomerChange} placeholder="Customer Name" className="px-4 py-2 border rounded w-full" required />
         <input name="address" value={customer.address} onChange={handleCustomerChange} placeholder="Address (optional)" className="px-4 py-2 border rounded w-full" />
         <input name="mobile" value={customer.mobile} onChange={handleCustomerChange} placeholder="Mobile Number (optional)" className="px-4 py-2 border rounded w-full" />
+      </div>
+      
+      {/* Bill Date Selection */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Bill Date (Leave empty for current date & time)
+        </label>
+        <input 
+          type="datetime-local" 
+          value={billDate} 
+          onChange={(e) => setBillDate(e.target.value)}
+          className="px-4 py-2 border rounded w-full md:w-1/2"
+          placeholder="Select custom date for bill"
+        />
+        {billDate && (
+          <p className="text-sm text-gray-600 mt-1">
+            Bill will be created with date: {new Date(billDate).toLocaleString()}
+          </p>
+        )}
       </div>
       {/* Product Search and Select */}
       <div className="mb-4">

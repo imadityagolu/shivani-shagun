@@ -333,7 +333,7 @@ exports.markNotificationAsRead = async (req, res) => {
 
 exports.createOrder = async (req, res) => {
   try {
-    const { products, total, paymentMethod, paid, due, customer, mobile, address, cost } = req.body;
+    const { products, total, paymentMethod, paid, due, customer, mobile, address, cost, customDate } = req.body;
     if (!products || !Array.isArray(products) || products.length === 0) {
       return res.status(400).json({ message: 'No products in order' });
     }
@@ -367,7 +367,8 @@ exports.createOrder = async (req, res) => {
     if (typeof finalCost !== 'number' || isNaN(finalCost)) {
       finalCost = productsWithQty.reduce((sum, p) => sum + (Number(p.rate || 0) * Number(p.quantity || 1)), 0);
     }
-    const order = await Order.create({
+    // Prepare order data with custom date if provided
+    const orderData = {
       customer,
       mobile,
       address,
@@ -380,7 +381,18 @@ exports.createOrder = async (req, res) => {
       status,
       cost: finalCost,
       quantity: totalQuantity,
-    });
+    };
+    
+    // Add custom date if provided
+    if (customDate) {
+      const customDateTime = new Date(customDate);
+      if (!isNaN(customDateTime.getTime())) {
+        orderData.createdAt = customDateTime;
+        orderData.updatedAt = customDateTime;
+      }
+    }
+    
+    const order = await Order.create(orderData);
     // Decrease quantity of each product by the ordered quantity
     for (const p of productsWithQty) {
       if (p._id && p.quantity > 0) {
