@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Header from '../Header';
 import { toast } from 'react-toastify';
-import { FaHeart, FaTimes } from 'react-icons/fa';
+import { FaHeart, FaTimes, FaShoppingCart, FaArrowLeft, FaGift } from 'react-icons/fa';
 
 function Cart() {
   const [products, setProducts] = useState([]);
@@ -98,11 +98,37 @@ function Cart() {
     <>
       <div className="max-w-7xl mx-auto mt-8 px-4">
         <h2 className="text-2xl font-bold text-rose-500 mb-6 text-center">My Cart</h2>
+        <hr className='text-rose-500 mb-7' />
         {loading ? (
           <div className="text-center py-8 text-lg">Loading...</div>
         ) : inStockProducts.length === 0 ? (
-          <div className="min-h-[60vh] flex items-center justify-center text-3xl font-bold text-rose-500">
-            No products in cart.
+          <div className="min-h-[60vh] flex items-center justify-center">
+            <div className="text-center max-w-md mx-auto px-6">
+              {/* Empty Cart Icon */}
+              <div className="relative mb-8">
+                <div className="w-32 h-32 mx-auto bg-gradient-to-br from-rose-100 to-pink-100 rounded-full flex items-center justify-center shadow-lg">
+                  <FaShoppingCart className="text-6xl text-rose-400" />
+                </div>
+              </div>
+              
+              {/* Main Message */}
+              <h3 className="text-2xl font-bold text-gray-800 mb-3">Your Cart is Empty</h3>
+              <p className="text-gray-600 mb-8 leading-relaxed">
+                Looks like you haven't added anything to your cart yet. 
+                Start shopping to fill it up with amazing products!
+              </p>
+              
+              {/* Action Buttons */}
+              <div className="space-y-4">
+                <button
+                  onClick={() => navigate('/')}
+                  className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transform transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
+                >
+                  <FaArrowLeft className="text-sm" />
+                  Continue Shopping
+                </button>
+              </div>
+            </div>
           </div>
         ) : (
           <>
@@ -180,4 +206,4 @@ function Cart() {
   );
 }
 
-export default Cart; 
+export default Cart;

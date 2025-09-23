@@ -10,7 +10,8 @@ const ORDER_STATUSES = [
   'shipped',
   'out for delivery',
   'delivered',
-  'cancelled'
+  'cancelled',
+  'return'
 ];
 
 function Orders() {

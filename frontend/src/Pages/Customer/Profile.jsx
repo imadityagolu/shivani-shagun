@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { FaUserCircle, FaBox, FaUser, FaHeart, FaShoppingCart, FaCog, FaBars, FaBell, FaEdit, FaMapMarkerAlt, FaPlus, FaCheckCircle } from 'react-icons/fa';
+import { FaUserCircle, FaBox, FaUser, FaHeart, FaShoppingCart, FaCog, FaBars, FaBell, FaEdit, FaMapMarkerAlt, FaPlus, FaCheckCircle, FaDownload, FaFilePdf, FaUndo } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, pdf } from '@react-pdf/renderer';
 import logo from '../../Images/store/logo.png';
 import Wishlist from './Wishlist';
 import Cart from './Cart';
@@ -44,6 +45,7 @@ function Profile() {
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [cancelPopupOrderId, setCancelPopupOrderId] = useState(null);
+  const [returnPopupOrderId, setReturnPopupOrderId] = useState(null);
 
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const token = localStorage.getItem('token');
@@ -425,6 +427,207 @@ function Profile() {
     }
   }
 
+  // PDF Styles
+  const pdfStyles = StyleSheet.create({
+    page: {
+      flexDirection: 'column',
+      backgroundColor: '#FFFFFF',
+      padding: 30,
+    },
+    header: {
+      fontSize: 24,
+      marginBottom: 20,
+      textAlign: 'center',
+      color: '#E11D48',
+      fontWeight: 'bold',
+    },
+    companyName: {
+      fontSize: 18,
+      marginBottom: 30,
+      textAlign: 'center',
+      color: '#374151',
+    },
+    section: {
+      margin: 10,
+      padding: 10,
+    },
+    sectionTitle: {
+      fontSize: 14,
+      marginBottom: 10,
+      fontWeight: 'bold',
+      color: '#374151',
+    },
+    text: {
+      fontSize: 12,
+      marginBottom: 5,
+      color: '#6B7280',
+    },
+    table: {
+      display: 'table',
+      width: 'auto',
+      borderStyle: 'solid',
+      borderWidth: 1,
+      borderRightWidth: 0,
+      borderBottomWidth: 0,
+      marginTop: 10,
+    },
+    tableRow: {
+      margin: 'auto',
+      flexDirection: 'row',
+    },
+    tableCol: {
+      width: '25%',
+      borderStyle: 'solid',
+      borderWidth: 1,
+      borderLeftWidth: 0,
+      borderTopWidth: 0,
+    },
+    tableCell: {
+      margin: 'auto',
+      marginTop: 5,
+      fontSize: 10,
+      padding: 5,
+    },
+    total: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginTop: 20,
+      textAlign: 'right',
+      color: '#E11D48',
+    },
+    footer: {
+      position: 'absolute',
+      bottom: 30,
+      left: 30,
+      right: 30,
+      textAlign: 'center',
+      fontSize: 10,
+      color: '#9CA3AF',
+    },
+  });
+
+  // PDF Document Component
+  const InvoicePDF = ({ order, customerData }) => (
+    <Document>
+      <Page size="A4" style={pdfStyles.page}>
+        <Text style={pdfStyles.header}>Shivani Shagun</Text>
+        <Text style={pdfStyles.companyName}>INVOICE</Text>
+        
+        <View style={pdfStyles.section}>
+          <Text style={pdfStyles.sectionTitle}>Invoice Details</Text>
+          <Text style={pdfStyles.text}>Order ID: {order._id.toUpperCase()}</Text>
+          <Text style={pdfStyles.text}>Date: {new Date(order.createdAt).toLocaleDateString()}</Text>
+          <Text style={pdfStyles.text}>Status: {order.status.toUpperCase()}</Text>
+        </View>
+
+        <View style={pdfStyles.section}>
+          <Text style={pdfStyles.sectionTitle}>Customer Details</Text>
+          <Text style={pdfStyles.text}>Name: {customerData?.name || 'N/A'}</Text>
+          <Text style={pdfStyles.text}>Email: {customerData?.email || 'N/A'}</Text>
+          <Text style={pdfStyles.text}>Address: {order.address}</Text>
+        </View>
+
+        <View style={pdfStyles.section}>
+          <Text style={pdfStyles.sectionTitle}>Order Details</Text>
+          <View style={pdfStyles.table}>
+            <View style={pdfStyles.tableRow}>
+              <View style={pdfStyles.tableCol}>
+                <Text style={pdfStyles.tableCell}>Product</Text>
+              </View>
+              <View style={pdfStyles.tableCol}>
+                <Text style={pdfStyles.tableCell}>Category</Text>
+              </View>
+              <View style={pdfStyles.tableCol}>
+                <Text style={pdfStyles.tableCell}>Quantity</Text>
+              </View>
+              <View style={pdfStyles.tableCol}>
+                <Text style={pdfStyles.tableCell}>Price</Text>
+              </View>
+            </View>
+            {order.products.map((product, index) => (
+              <View style={pdfStyles.tableRow} key={index}>
+                <View style={pdfStyles.tableCol}>
+                  <Text style={pdfStyles.tableCell}>{product.product || 'Product'}</Text>
+                </View>
+                <View style={pdfStyles.tableCol}>
+                  <Text style={pdfStyles.tableCell}>{product.category || 'N/A'}</Text>
+                </View>
+                <View style={pdfStyles.tableCol}>
+                  <Text style={pdfStyles.tableCell}>1</Text>
+                </View>
+                <View style={pdfStyles.tableCol}>
+                  <Text style={pdfStyles.tableCell}>{product.mrp || 0}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <View style={pdfStyles.section}>
+          <Text style={pdfStyles.sectionTitle}>Payment Information</Text>
+          <Text style={pdfStyles.text}>Payment Method: {order.paymentMethod}</Text>
+          <Text style={pdfStyles.total}>Total Amount: {order.total}</Text>
+        </View>
+
+        <Text style={pdfStyles.footer}>
+          Thank you for your purchase! For any queries, please contact us.
+        </Text>
+      </Page>
+    </Document>
+  );
+
+  const downloadInvoice = async (order) => {
+    try {
+      const blob = await pdf(<InvoicePDF order={order} customerData={profileData} />).toBlob();
+      const url = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `invoice-${order._id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Invoice downloaded successfully!');
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      toast.error('Failed to download invoice');
+    }
+  }
+
+  // Check if return is available (within 24 hours of delivery)
+  const isReturnAvailable = (order) => {
+    if (order.status !== 'delivered') return false;
+    
+    // For now, we'll use the order creation date as delivery date
+    // In a real scenario, you'd have a separate deliveredAt timestamp
+    const deliveryDate = new Date(order.createdAt);
+    const currentDate = new Date();
+    const timeDifference = currentDate.getTime() - deliveryDate.getTime();
+    const hoursDifference = timeDifference / (1000 * 3600);
+    
+    return hoursDifference <= 24;
+  };
+
+  const handleReturnProduct = async (orderId) => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/customer/orders/${orderId}/return`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        toast.success('Return request submitted successfully');
+        fetchOrders();
+        setReturnPopupOrderId(null);
+      } else {
+        toast.error('Failed to submit return request');
+      }
+    } catch (err) {
+      toast.error('Failed to submit return request');
+    }
+  }
+
   return (
     <div className="bg-gray-100 min-h-screen flex flex-col">
       {/* Header */}
@@ -629,7 +832,7 @@ function Profile() {
                       {/* Order Details */}
                       <div className="p-4 sm:p-6">
                         <div className="overflow-x-auto mt-1">
-                          <table className="min-w-full bg-white border rounded-lg">
+                          <table className="min-w-full bg-white border border-rose-200 rounded-lg">
                             <thead className="bg-rose-50">
                               <tr>
                                 <th className="px-2 py-2 text-xs font-semibold text-gray-700 text-left">Image</th>
@@ -671,11 +874,17 @@ function Profile() {
                         <div className="mb-2 text-sm text-gray-700 mt-4">
                           <span className="font-semibold">Address:</span> {order.address}
                         </div>
-                        {order.status === 'cancelled' ? (
+                        {order.status === 'cancelled' && (
                           <div className="w-full flex justify-center items-center mt-6 mb-2">
                             <span className="text-lg sm:text-xl font-bold text-red-500 bg-red-100 px-6 py-3 rounded-lg shadow">Order Cancelled</span>
                           </div>
-                        ) : (
+                        )}
+                        {order.status === 'return' && (
+                          <div className="w-full flex justify-center items-center mt-6 mb-2">
+                            <span className="text-lg sm:text-xl font-bold text-orange-500 bg-orange-100 px-6 py-3 rounded-lg shadow">Return Requested</span>
+                          </div>
+                        )}
+                        {order.status !== 'cancelled' && order.status !== 'return' && (
                           <div className="w-full mt-4 px-4 sm:px-8">
                             <div className="relative h-10 flex items-center">
                               {/* Progress Bar Background */}
@@ -707,13 +916,38 @@ function Profile() {
                             </div>
                           </div>
                         )}
-                        {order.status !== 'out for delivery' && order.status !== 'delivered' && order.status !== 'cancelled' && (
-                          <button
+                        {order.status !== 'out for delivery' && order.status !== 'delivered' && order.status !== 'cancelled' && order.status !== 'return' && (
+                          <div className="flex flex-col sm:flex-row gap-2 mt-4 justify-center">
+                            <button
                             onClick={() => setCancelPopupOrderId(order._id)}
                             className="mt-4 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold shadow"
                           >
                             Cancel Order
                           </button>
+                          </div>
+                        )}
+                        {order.status === 'delivered' && (
+                          <div className="flex flex-col sm:flex-row gap-2 mt-4 justify-center">
+                            <button
+                              onClick={() => downloadInvoice(order)}
+                              className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold shadow flex items-center gap-2"
+                            >
+                              <FaDownload className="w-4 h-4" />
+                              Download Invoice
+                            </button>
+                            <button
+                              onClick={() => setReturnPopupOrderId(order._id)}
+                              disabled={!isReturnAvailable(order)}
+                              className={`px-4 py-2 rounded-lg font-semibold shadow flex items-center gap-2 ${
+                                isReturnAvailable(order)
+                                  ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              }`}
+                            >
+                              <FaUndo className="w-4 h-4" />
+                              Return Product
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -1260,6 +1494,7 @@ function Profile() {
           ) : null}
         </div>
       </div>
+      
       {cancelPopupOrderId && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
     <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-xs relative">
@@ -1283,6 +1518,35 @@ function Profile() {
           className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold"
         >
           Yes, Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+      {returnPopupOrderId && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+    <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-xs relative">
+      <button
+        onClick={() => setReturnPopupOrderId(null)}
+        className="absolute top-2 right-2 text-2xl text-gray-400 hover:text-red-500"
+      >
+        &times;
+      </button>
+      <h3 className="text-lg font-bold text-gray-800 mb-2 text-center">Return Product?</h3>
+      <p className="text-gray-600 text-center mb-4">Are you sure you want to return this product?</p>
+      <div className="flex gap-3">
+        <button
+          onClick={() => setReturnPopupOrderId(null)}
+          className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+        >
+          No
+        </button>
+        <button
+          onClick={() => { handleReturnProduct(returnPopupOrderId); }}
+          className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition font-semibold"
+        >
+          Yes, Return
         </button>
       </div>
     </div>

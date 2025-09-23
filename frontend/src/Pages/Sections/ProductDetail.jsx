@@ -109,111 +109,201 @@ function ProductDetail() {
       <Header />
       <div className="max-w-7xl mx-auto mt-8 px-4">
         {loading ? (
-          <div className="text-center py-8 text-lg">Loading...</div>
-        ) : error ? (
-          <div className="text-center py-8 text-rose-500 text-xl font-bold">{error}</div>
-        ) : product ? (
-          <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col md:flex-row gap-8 items-center">
-            <div className="flex items-center mb-2">
-              {product.images && product.images.length > 1 && (
-                <button
-                  onClick={() => setImgIdx(idx => (idx - 1 + product.images.length) % product.images.length)}
-                  className="bg-transparent hover:bg-gray-200/60 text-rose-400 rounded-full p-2 transition shadow mr-2"
-                  aria-label="Previous image"
-                >
-                  <FaChevronLeft className="w-6 h-6 text-rose-400" />
-                </button>
-              )}
-              <div className="w-72 md:w-96 h-80 md:h-[32rem] max-w-full flex items-center justify-center bg-gray-50 rounded" style={{ minHeight: '20rem', maxHeight: '32rem' }}>
-                {(product.images && product.images.length > 0) ? (
-                  <img
-                    src={`${import.meta.env.VITE_BACKEND_URL}${product.images[imgIdx]}`}
-                    alt={product.product}
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <img
-                    src={`${import.meta.env.VITE_BACKEND_URL}/uploads/products/default-product-image.JPG`}
-                    alt="Default"
-                    className="w-full h-full object-contain"
-                  />
-                )}
-              </div>
-              {product.images && product.images.length > 1 && (
-                <button
-                  onClick={() => setImgIdx(idx => (idx + 1) % product.images.length)}
-                  className="bg-transparent hover:bg-gray-200/60 text-rose-400 rounded-full p-2 transition shadow ml-2"
-                  aria-label="Next image"
-                >
-                  <FaChevronRight className="w-6 h-6 text-rose-400" />
-                </button>
-              )}
-            </div>
-            <div className="flex-1 flex flex-col gap-2">
-              <h2 className="text-2xl font-bold text-rose-500 mb-2">{product.product}</h2>
-              <div className="text-gray-600 text-lg mb-2">{product.description}</div>
-              {product.color && product.color.name && (
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="inline-block w-5 h-5 rounded-full border border-gray-300" style={{ backgroundColor: product.color.hex || '#ccc' }}></span>
-                  <span className="text-sm text-gray-700 font-medium">{product.color.name}</span>
-                  <span className="text-xs text-gray-400 italic ml-2">Color may vary from original</span>
-                </div>
-              )}
-              <div className="text-gray-500 text-base mb-1">Category: {product.category}</div>
-          <div className="text-gray-700 text-md text-red-500 font-semibold mb-1">
-              
-          Price: <span className="text-xs text-gray-400 line-through">₹{product.rate ? (product.rate*3) : ''}</span>
-          {product.rate && product.mrp && product.rate*3 > product.mrp && (
-            <span className="text-xs bg-rose-100 text-rose-600 font-bold px-2 py-0.5 rounded-full ml-1">
-              {Math.round(100 - (product.mrp / (product.rate*3)) * 100)}% OFF
-            </span>
-          )}
+          <div className="flex items-center justify-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
+            <span className="ml-4 text-lg text-gray-600">Loading product details...</span>
           </div>
-              <div className="text-gray-700 text-xl text-green-500 font-semibold mb-1">MRP: ₹{product.mrp} /-</div>
-              
-              <div className="flex gap-4 mt-2">
-                <button
-                  onClick={() => handleAdd('wishlist')}
-                  className={`bg-rose-100 text-rose-500 font-semibold px-5 py-2 rounded-lg shadow hover:bg-rose-200 transition flex items-center gap-2 ${inWishlist ? 'bg-rose-200 text-rose-700' : ''}`}
-                >
-                  <FaHeart className="text-lg" />
-                  {inWishlist ? 'View My Wishlist' : 'Add to Wishlist'}
-                </button>
-                {(!inCart && product.quantity > 0) ? (
-                  <button
-                    onClick={() => handleAdd('cart')}
-                    className={`bg-green-100 text-green-700 font-semibold px-5 py-2 rounded-lg shadow hover:bg-green-200 transition flex items-center gap-2`}
-                  >
-                    <FaShoppingCart className="text-lg" />
-                    Add to Cart
-                  </button>
-                ) : (inCart && product.quantity > 0) ? (
-                  <button
-                    onClick={() => navigate('/Cart')}
-                    className="bg-gray-200 text-gray-400 font-semibold px-5 py-2 rounded-lg shadow flex items-center gap-2 hover:bg-gray-300"
-                  >
-                    <FaShoppingCart className="text-lg" />
-                    In Cart
-                  </button>
-                ) : null}
+        ) : error ? (
+          <div className="text-center py-16">
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-8 max-w-md mx-auto">
+              <div className="text-red-500 text-6xl mb-4">⚠️</div>
+              <div className="text-red-600 text-xl font-bold">{error}</div>
+              <p className="text-red-500 mt-2">Please try again or contact support</p>
+            </div>
+          </div>
+        ) : product ? (
+          <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+            <div className="flex flex-col lg:flex-row">
+              {/* Image Gallery Section */}
+              <div className="lg:w-1/2 p-8 bg-white">
+                <div className="relative group">
+                  {/* Main Image Container */}
+                  <div className="relative w-full aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl overflow-hidden shadow-inner">
+                    {(product.images && product.images.length > 0) ? (
+                      <img
+                        src={`${import.meta.env.VITE_BACKEND_URL}${product.images[imgIdx]}`}
+                        alt={product.product}
+                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <img
+                        src={`${import.meta.env.VITE_BACKEND_URL}/uploads/products/default-product-image.JPG`}
+                        alt="Default"
+                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                      />
+                    )}
+                    
+                    {/* Navigation Arrows */}
+                    {product.images && product.images.length > 1 && (
+                      <>
+                        <button
+                          onClick={() => setImgIdx(idx => (idx - 1 + product.images.length) % product.images.length)}
+                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-gray-700 hover:text-rose-500 rounded-full p-3 transition-all duration-300 shadow-lg hover:shadow-xl opacity-0 group-hover:opacity-100"
+                          aria-label="Previous image"
+                        >
+                          <FaChevronLeft className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => setImgIdx(idx => (idx + 1) % product.images.length)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-gray-700 hover:text-rose-500 rounded-full p-3 transition-all duration-300 shadow-lg hover:shadow-xl opacity-0 group-hover:opacity-100"
+                          aria-label="Next image"
+                        >
+                          <FaChevronRight className="w-5 h-5" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  
+                  {/* Image Indicators */}
+                  {product.images && product.images.length > 1 && (
+                    <div className="flex justify-center mt-6 gap-2">
+                      {product.images.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setImgIdx(index)}
+                          className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                            index === imgIdx 
+                              ? 'bg-rose-500 scale-125' 
+                              : 'bg-gray-300 hover:bg-gray-400'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-              {(!product.quantity || product.quantity === 0) && (
-                <div className="text-red-500 font-semibold mt-2 text-base">Out of Stock</div>
-              )}
+
+              {/* Product Information Section */}
+              <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
+                <div className="space-y-6">
+                  {/* Product Title */}
+                  <div>
+                    <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight mb-3">
+                      {product.product}
+                    </h1>
+                    <p className="text-gray-600 text-lg leading-relaxed">{product.description}</p>
+                  </div>
+
+                  {/* Product Details */}
+                  <div className="space-y-4">
+                    {/* Category */}
+                    <div className="flex items-center gap-3">
+                      <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
+                        {product.category}
+                      </span>
+                    </div>
+
+                    {/* Color */}
+                    {product.color && product.color.name && (
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <span 
+                            className="w-6 h-6 rounded-full border-2 border-white shadow-md" 
+                            style={{ backgroundColor: product.color.hex || '#ccc' }}
+                          ></span>
+                          <span className="text-gray-700 font-medium">{product.color.name}</span>
+                        </div>
+                        <span className="text-xs text-gray-400 italic">*Color may vary</span>
+                      </div>
+                    )}
+
+                    {/* Pricing */}
+                    <div className="p-6 ">
+                      <div className="space-y-2">
+                        {product.rate && product.mrp && product.rate*3 > product.mrp && (
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg text-gray-500 line-through">₹{product.rate*3}</span>
+                            <span className="bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                              {Math.round(100 - (product.mrp / (product.rate*3)) * 100)}% OFF
+                            </span>
+                          </div>
+                        )}
+                        <div className="text-3xl font-bold text-green-600">
+                          ₹{product.mrp}
+                          <span className="text-lg font-normal text-gray-500 ml-2">/-</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Stock Status */}
+                    {(!product.quantity || product.quantity === 0) ? (
+                      <div className="p-4">
+                        <div className="flex items-center gap-2 text-red-600">
+                          <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                          <span className="font-semibold">Out of Stock</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4">
+                        <div className="flex items-center gap-2 text-green-600">
+                          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                          <span className="font-semibold">In Stock</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-4 pt-6">
+                    <button
+                      onClick={() => handleAdd('wishlist')}
+                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 ${
+                        inWishlist 
+                          ? 'bg-rose-500 text-white shadow-lg hover:bg-rose-600' 
+                          : 'bg-rose-50 text-rose-600 border-2 border-rose-200 hover:bg-rose-100 hover:border-rose-300'
+                      }`}
+                    >
+                      <FaHeart className="text-xl" />
+                      <span>{inWishlist ? 'View Wishlist' : 'Add to Wishlist'}</span>
+                    </button>
+                    
+                    {(!inCart && product.quantity > 0) ? (
+                      <button
+                        onClick={() => handleAdd('cart')}
+                        className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 hover:from-green-600 hover:to-emerald-600 shadow-lg hover:shadow-xl"
+                      >
+                        <FaShoppingCart className="text-xl" />
+                        <span>Add to Cart</span>
+                      </button>
+                    ) : (inCart && product.quantity > 0) ? (
+                      <button
+                        onClick={() => navigate('/Cart')}
+                        className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-gray-100 text-gray-600 rounded-2xl font-semibold transition-all duration-300 hover:bg-gray-200 border-2 border-gray-200"
+                      >
+                        <FaShoppingCart className="text-xl" />
+                        <span>View Cart</span>
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         ) : null}
       </div>
+
       <div className="max-w-7xl mx-auto mt-4 px-4">
         <div className="bg-blue-50 border-l-4 border-blue-400 text-blue-700 p-4 rounded-lg shadow flex items-center gap-3">
           <span className="font-bold">Note:</span>
           Product(s) are returnable only within 24 hours of the delivery.
         </div>
+        
         {/* Related Products */}
         {product && (
           <RelatedProducts category={product.category} price={product.mrp} excludeId={product._id} />
         )}
       </div>
+
       <Footer />
     </>
   );
@@ -222,23 +312,58 @@ function ProductDetail() {
 function RelatedProducts({ category, price, excludeId }) {
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isRandomProducts, setIsRandomProducts] = useState(false);
+
+  // Function to shuffle array and get random items
+  const getRandomProducts = (products, count = 4) => {
+    const shuffled = [...products].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+  };
+
   useEffect(() => {
     const fetchRelated = async () => {
       setLoading(true);
+      setIsRandomProducts(false);
       try {
         const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
         const res = await fetch(`${BACKEND_URL}/api/products`);
         if (res.ok) {
           const data = await res.json();
-          // Filter by category, price range, and exclude current product
+          
+          // First, try to filter by category, price range, and exclude current product
           const minPrice = price * 0.8;
           const maxPrice = price * 1.2;
-          const filtered = data.filter(p =>
+          const priceFiltered = data.filter(p =>
             p._id !== excludeId &&
             p.category === category &&
             Number(p.mrp) >= minPrice && Number(p.mrp) <= maxPrice
           ).slice(0, 4);
-          setRelated(filtered);
+
+          if (priceFiltered.length > 0) {
+            // Found related products based on price range
+            setRelated(priceFiltered);
+          } else {
+            // No products found in price range, get random products from same category
+            const categoryProducts = data.filter(p =>
+              p._id !== excludeId && p.category === category
+            );
+            
+            if (categoryProducts.length > 0) {
+              const randomProducts = getRandomProducts(categoryProducts, 4);
+              setRelated(randomProducts);
+              setIsRandomProducts(true);
+            } else {
+              // No products in same category, get random products from all categories
+              const allOtherProducts = data.filter(p => p._id !== excludeId);
+              if (allOtherProducts.length > 0) {
+                const randomProducts = getRandomProducts(allOtherProducts, 4);
+                setRelated(randomProducts);
+                setIsRandomProducts(true);
+              } else {
+                setRelated([]);
+              }
+            }
+          }
         } else {
           setRelated([]);
         }
@@ -251,10 +376,13 @@ function RelatedProducts({ category, price, excludeId }) {
   }, [category, price, excludeId]);
 
   if (loading) return <div className="text-gray-400 text-sm py-2">Loading related products...</div>;
-  if (!related.length) return <div className="text-gray-400 text-sm py-2">No related products found.</div>;
+  if (!related.length) return <div className="text-gray-400 text-sm py-2">No products found.</div>;
+  
   return (
     <div className="mt-8">
-      <h4 className="text-md font-bold text-gray-700 mb-4">Related Products</h4>
+      <h4 className="text-md font-bold text-gray-700 mb-4">
+        {isRandomProducts ? `More from ${category}` : 'Related Products'}
+      </h4>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {related.map((p) => (
           <RelatedProductCard key={p._id} product={p} BACKEND_URL={import.meta.env.VITE_BACKEND_URL} />
@@ -264,7 +392,7 @@ function RelatedProducts({ category, price, excludeId }) {
   );
 }
 
-function RelatedProductCard({ product, BACKEND_URL }) {
+function RelatedProductCard({ product, BACKEND_URL, avgRating = 0 }) {
   const [imgIdx, setImgIdx] = useState(0);
   const images = product.images && product.images.length > 0 ? product.images : ["/uploads/products/default-product-image.JPG"];
   useEffect(() => {
@@ -335,4 +463,4 @@ function RelatedProductCard({ product, BACKEND_URL }) {
   );
 }
 
-export default ProductDetail; 
+export default ProductDetail;

@@ -28,22 +28,36 @@ function Home() {
       <Slideshow />
       
       {/* Category Circles */}
-      <div className="flex flex-row justify-center gap-4 sm:gap-8 py-8 overflow-x-auto scrollbar-hide min-w-0 pl-0 pr-0 sm:pl-0 sm:pr-0 snap-x snap-mandatory">
+      <div className="flex flex-row justify-center gap-4 sm:gap-8 py-11 overflow-x-auto scrollbar-hide min-w-0 pl-0 pr-0 sm:pl-0 sm:pr-0 snap-x snap-mandatory">
         <CategoryCircle to="/Lehnga" img={lehngaImg} label="Lehnga" isFirst />
         <CategoryCircle to="/Saree" img={sareeImg} label="Saree" />
         <CategoryCircle to="/Chunni" img={chunniImg} label="Chunni" />
         <CategoryCircle to="/Sute" img={suteImg} label="Sute" isLast />
       </div>
       
+      
+      <div className="flex justify-center mt-2 mb-8">
+        <Link to="/AllProduct" className="px-6 py-2 rounded-lg bg-rose-500 text-white font-bold text-base shadow hover:bg-rose-600 transition">
+          Show All Products
+        </Link>
+      </div>
+      
+      <h3 className="max-w-7xl mx-auto px-4 text-xl sm:text-2xl font-bold text-rose-500 mb-6 mt-8">Our latest Collections</h3>
+      {/* Latest Products Showcase */}
+      <LatestProductsShowcase />
+
+      {/* Category-wise latest products */}
+      <CategoryLatestShowcase />
+      
       {/* Video Section Title */}
-      {/* <h2 className="text-2xl sm:text-3xl font-bold text-rose-500 text-center mt-8 mb-4">Our latest Collections</h2> */}
+      <h2 className="text-2xl sm:text-3xl font-bold text-rose-500 text-center mt-8 mb-4">Catalogue Video</h2>
       {/* Video Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4 sm:px-8 pb-8">
-        {[leh1, leh2].map((src, idx) => (
+      <div className="gap-6 px-4 sm:px-8 pb-8">
+        {[leh1].map((src, idx) => (
           <div key={idx} className="bg-white rounded-xl shadow-lg flex flex-col items-center p-4">
             <video
               src={src}
-              className="rounded-lg w-full h-56 md:h-96 object-cover shadow"
+              className="rounded-lg w-full h-50 md:h-180 object-cover shadow"
               autoPlay
               loop
               playsInline
@@ -53,19 +67,7 @@ function Home() {
           </div>
         ))}
       </div>
-      
-      <div className="flex justify-center mt-2 mb-8">
-        <Link to="/AllProduct" className="px-6 py-2 rounded-lg bg-rose-500 text-white font-bold text-base shadow hover:bg-rose-600 transition">
-          Show All Products
-        </Link>
-      </div>
-      
-      {/* <h2 className="text-2xl sm:text-3xl font-bold text-rose-500 text-left mt-8 mb-4 px-35">Our latest Collections</h2> */}
-      <h3 className="max-w-7xl mx-auto px-4 text-xl sm:text-2xl font-bold text-rose-500 mb-6 mt-8">Our latest Collections</h3>
-      {/* Latest Products Showcase */}
-      <LatestProductsShowcase />
-      {/* Category-wise latest products */}
-      <CategoryLatestShowcase />
+
       <Footer />
     </>
   );

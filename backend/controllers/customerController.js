@@ -461,3 +461,61 @@ exports.cancelOrder = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 }; 
+
+exports.returnOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const customerId = req.user.id;
+    const user = await Customer.findById(customerId);
+    if (!user) return res.status(404).json({ message: 'Customer not found' });
+    
+    // Find order by _id and mobile
+    const order = await Order.findOne({ _id: orderId, mobile: user.mobile });
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    
+    // Check if order is delivered
+    if (order.status !== 'delivered') {
+      return res.status(400).json({ message: 'Only delivered orders can be returned' });
+    }
+    
+    // Check if order is within 24 hours of delivery
+    const deliveryTime = new Date(order.updatedAt);
+    const currentTime = new Date();
+    const timeDifference = currentTime - deliveryTime;
+    const hoursDifference = timeDifference / (1000 * 60 * 60);
+    
+    if (hoursDifference > 24) {
+      return res.status(400).json({ message: 'Return period has expired. Products can only be returned within 24 hours of delivery.' });
+    }
+    
+    order.status = 'return';
+    await order.save();
+    
+    // Send notification to customer
+    if (user) {
+      user.notifications.unshift({
+        title: 'Return Request Submitted',
+        message: `Your return request for order (${order._id}) has been submitted and is being processed.`,
+        timestamp: new Date(),
+        read: false
+      });
+      await user.save();
+    }
+    
+    // Send notification to admin
+    const admin = await Admin.findOne();
+    if (admin) {
+      admin.notifications.unshift({
+        title: 'Return Request',
+        message: `Customer ${user?.name || ''} has requested a return for order (${order._id}).`,
+        timestamp: new Date(),
+        read: false
+      });
+      await admin.save();
+    }
+    
+    res.json({ message: 'Return request submitted successfully', order });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};

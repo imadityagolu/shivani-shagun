@@ -85,6 +85,7 @@ app.get('/api/admin/orders', auth('admin'), adminController.getAllOrders);
 app.patch('/api/admin/orders/:orderId/status', auth('admin'), adminController.updateOrderStatus);
 app.patch('/api/admin/orders/:orderId/return', auth('admin'), adminController.updateOrderReturn);
 app.patch('/api/customer/orders/:orderId/cancel', auth('customer'), customerController.cancelOrder);
+app.patch('/api/customer/orders/:orderId/return', auth('customer'), customerController.returnOrder);
 app.post('/api/admin/orders', auth('admin'), adminController.createOrder);
 
 // JWT auth middleware
