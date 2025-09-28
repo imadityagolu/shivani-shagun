@@ -25,6 +25,13 @@ import Wishlist from './Pages/Customer/Wishlist';
 import Cart from './Pages/Customer/Cart';
 import Order from './Pages/Customer/Order';
 
+// Website info pages
+import AboutUs from './Pages/AboutUs';
+import ContactUs from './Pages/ContactUs';
+import CancelReturnRefund from './Pages/CancelReturnRefund';
+import PrivacyPolicy from './Pages/PrivacyPolicy';
+import TermsConditions from './Pages/TermsConditions';
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -105,6 +112,26 @@ const router = createBrowserRouter([
       {
         path: '/product/:id',
         element: <ProductDetail/>
+      },
+      {
+        path: '/AboutUs',
+        element: <AboutUs/>
+      },
+      {
+        path: '/ContactUs',
+        element: <ContactUs/>
+      },
+      {
+        path: '/CancelReturnRefund',
+        element: <CancelReturnRefund/>
+      },
+      {
+        path: '/PrivacyPolicy',
+        element: <PrivacyPolicy/>
+      },
+      {
+        path: '/TermsConditions',
+        element: <TermsConditions/>
       },
       {
         path: '*',

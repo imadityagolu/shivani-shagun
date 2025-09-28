@@ -20,12 +20,12 @@ function Footer() {
           <h3 className="text-lg font-bold mb-3">Quick Links</h3>
           <ul className="space-y-2 text-sm">
             <li><Link to="/" className="hover:underline hover:text-rose-200 transition">Home</Link></li>
-            <li><Link to="/AllProduct" className="hover:underline hover:text-rose-200 transition">All Products</Link></li>
-            <li><Link to="/Saree" className="hover:underline hover:text-rose-200 transition">Sarees</Link></li>
-            <li><Link to="/Lehnga" className="hover:underline hover:text-rose-200 transition">Lehngas</Link></li>
-            <li><Link to="/Chunni" className="hover:underline hover:text-rose-200 transition">Chunnis</Link></li>
-            <li><Link to="/Sute" className="hover:underline hover:text-rose-200 transition">Sutes</Link></li>
             <li><Link to="/Login" className="hover:underline hover:text-rose-200 transition">Login / signup</Link></li>
+            <li><Link to="/AboutUs" className="hover:underline hover:text-rose-200 transition">About Us</Link></li>
+            <li><Link to="/ContactUs" className="hover:underline hover:text-rose-200 transition">Contact Us</Link></li>
+            <li><Link to="/CancelReturnRefund" className="hover:underline hover:text-rose-200 transition">Cancel/Return & Refund</Link></li>
+            <li><Link to="/PrivacyPolicy" className="hover:underline hover:text-rose-200 transition">Privacy Policy</Link></li>
+            <li><Link to="/TermsConditions" className="hover:underline hover:text-rose-200 transition">Terms & Conditions</Link></li>
           </ul>
         </div>
         {/* Contact & Social */}
