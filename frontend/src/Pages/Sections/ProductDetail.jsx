@@ -15,6 +15,14 @@ function ProductDetail() {
   const [error, setError] = useState('');
   const [imgIdx, setImgIdx] = useState(0);
   const [recommendations, setRecommendations] = useState([]);
+  const [feedback, setFeedback] = useState([]);
+  const [feedbackStats, setFeedbackStats] = useState({
+    averageRating: 0,
+    totalFeedback: 0,
+    ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+  });
+  const [feedbackPage, setFeedbackPage] = useState(1);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -35,6 +43,7 @@ function ProductDetail() {
     fetchProduct();
   }, [id]);
 
+
   useEffect(() => { setImgIdx(0); }, [product?._id]);
   useEffect(() => {
     if (!product || !product.images || product.images.length <= 1) return;
@@ -43,6 +52,34 @@ function ProductDetail() {
     }, 5000);
     return () => clearInterval(interval);
   }, [product]);
+
+  // Fetch product feedback
+  useEffect(() => {
+    if (!product?._id) return;
+    
+    const fetchFeedback = async () => {
+      setFeedbackLoading(true);
+      try {
+        const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+        const res = await fetch(`${BACKEND_URL}/api/customer/feedback/${product._id}?page=${feedbackPage}&limit=5`);
+        if (res.ok) {
+          const data = await res.json();
+          setFeedback(data.feedback || []);
+          setFeedbackStats({
+            averageRating: data.averageRating || 0,
+            totalFeedback: data.totalFeedback || 0,
+            ratingDistribution: data.ratingDistribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching feedback:', error);
+      } finally {
+        setFeedbackLoading(false);
+      }
+    };
+
+    fetchFeedback();
+  }, [product?._id, feedbackPage]);
 
   const isCustomer = Boolean(localStorage.getItem('token'));
   const [inWishlist, setInWishlist] = useState(false);
@@ -297,6 +334,107 @@ function ProductDetail() {
           <span className="font-bold">Note:</span>
           Product(s) are returnable only within 24 hours of the delivery.
         </div>
+
+        {/* Product Feedback Section */}
+        {product && (
+          <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden mt-8">
+            <div className="p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Customer Reviews</h2>
+              
+              {/* Feedback Stats */}
+              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-6 mb-8">
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-gray-900">{feedbackStats.averageRating.toFixed(1)}</div>
+                    <div className="flex items-center justify-center mt-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <FaStar
+                          key={star}
+                          className={`text-lg ${star <= Math.round(feedbackStats.averageRating) ? 'text-yellow-400' : 'text-gray-300'}`}
+                        />
+                      ))}
+                    </div>
+                    <div className="text-sm text-gray-600 mt-1">{feedbackStats.totalFeedback} reviews</div>
+                  </div>
+                  
+                  <div className="flex-1">
+                    {[5, 4, 3, 2, 1].map((rating) => (
+                      <div key={rating} className="flex items-center gap-3 mb-2">
+                        <span className="text-sm font-medium text-gray-700 w-8">{rating}★</span>
+                        <div className="flex-1 bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
+                            style={{
+                              width: feedbackStats.totalFeedback > 0 
+                                ? `${(feedbackStats.ratingDistribution[rating] / feedbackStats.totalFeedback) * 100}%` 
+                                : '0%'
+                            }}
+                          ></div>
+                        </div>
+                        <span className="text-sm text-gray-600 w-8">{feedbackStats.ratingDistribution[rating] || 0}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Feedback List */}
+              {feedbackLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-500"></div>
+                  <span className="ml-3 text-gray-600">Loading reviews...</span>
+                </div>
+              ) : feedback.length > 0 ? (
+                <div className="space-y-6">
+                  {feedback.map((review) => (
+                    <div key={review._id} className="border-b border-gray-100 pb-6 last:border-b-0">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-rose-400 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                          {review.customer?.name?.charAt(0)?.toUpperCase() || 'U'}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h4 className="font-semibold text-gray-900">{review.customer?.name || 'Anonymous'}</h4>
+                            <div className="flex items-center">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <FaStar
+                                  key={star}
+                                  className={`text-sm ${star <= review.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-sm text-gray-500">
+                              {new Date(review.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+                          {review.images && review.images.length > 0 && (
+                            <div className="flex gap-2 mt-3">
+                              {review.images.map((image, idx) => (
+                                <img
+                                  key={idx}
+                                  src={`${import.meta.env.VITE_BACKEND_URL}${image}`}
+                                  alt={`Review image ${idx + 1}`}
+                                  className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-gray-400 text-6xl mb-4">💬</div>
+                  <h3 className="text-lg font-semibold text-gray-600 mb-2">No reviews yet</h3>
+                  <p className="text-gray-500">Be the first to review this product!</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         
         {/* Related Products */}
         {product && (

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FaUserCircle, FaBox, FaUser, FaHeart, FaShoppingCart, FaCog, FaBars, FaBell, FaEdit, FaMapMarkerAlt, FaPlus, FaCheckCircle, FaDownload, FaFilePdf, FaUndo } from 'react-icons/fa';
+import { FaUserCircle, FaBox, FaUser, FaHeart, FaShoppingCart, FaCog, FaBars, FaBell, FaEdit, FaMapMarkerAlt, FaPlus, FaCheckCircle, FaDownload, FaFilePdf, FaUndo, FaStar, FaComment, FaCamera, FaTimes } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, pdf } from '@react-pdf/renderer';
@@ -46,6 +46,15 @@ function Profile() {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [cancelPopupOrderId, setCancelPopupOrderId] = useState(null);
   const [returnPopupOrderId, setReturnPopupOrderId] = useState(null);
+  
+  // Feedback related states
+  const [feedbackPopupOrderId, setFeedbackPopupOrderId] = useState(null);
+  const [selectedProductForFeedback, setSelectedProductForFeedback] = useState(null);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackImages, setFeedbackImages] = useState([]);
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [productFeedbackStatus, setProductFeedbackStatus] = useState({}); // Track feedback status for each product
 
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const token = localStorage.getItem('token');
@@ -80,6 +89,16 @@ function Profile() {
       fetchOrders();
     }
   }, [selectedSection]);
+
+  // Reset feedback form when switching between products
+  useEffect(() => {
+    if (selectedProductForFeedback) {
+      // Reset form state when a new product is selected
+      setFeedbackRating(0);
+      setFeedbackText('');
+      setFeedbackImages([]);
+    }
+  }, [selectedProductForFeedback]);
 
   const fetchProfileData = async () => {
     if (!token) return;
@@ -185,6 +204,8 @@ function Profile() {
       if (response.ok) {
         const data = await response.json();
         setOrders(data);
+        // Check feedback status for products in delivered orders
+        await checkFeedbackStatus(data);
       } else {
         setOrders([]);
       }
@@ -207,6 +228,41 @@ function Profile() {
     hours = hours ? hours : 12;
     const formattedHours = hours.toString().padStart(2, '0');
     return `${day}/${month}/${year} at ${formattedHours}:${minutes} ${ampm}`;
+  };
+
+  // Check feedback status for all products in delivered orders
+  const checkFeedbackStatus = async (ordersData) => {
+    if (!token || !ordersData || !Array.isArray(ordersData) || !ordersData.length) return;
+    
+    const feedbackStatusMap = {};
+    
+    // Get all delivered orders that are eligible for feedback
+    const deliveredOrders = ordersData.filter(order => 
+      order.status === 'delivered' && isFeedbackAvailable(order)
+    );
+    
+    // Check feedback status for each product in delivered orders
+    for (const order of deliveredOrders) {
+      for (const product of order.products) {
+        try {
+          const response = await fetch(`${BACKEND_URL}/api/customer/feedback/check/${product._id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            feedbackStatusMap[product._id] = data;
+          }
+        } catch (error) {
+          console.error('Error checking feedback status for product:', product._id, error);
+        }
+      }
+    }
+    
+    setProductFeedbackStatus(feedbackStatusMap);
   };
 
   const handleAddressInput = (e) => {
@@ -596,6 +652,9 @@ function Profile() {
     }
   }
 
+  // State for countdown timers
+  const [countdowns, setCountdowns] = useState({});
+
   // Check if return is available (within 24 hours of delivery)
   const isReturnAvailable = (order) => {
     if (order.status !== 'delivered') return false;
@@ -609,6 +668,44 @@ function Profile() {
     
     return hoursDifference <= 24;
   };
+
+  // Calculate remaining time for return window
+  const calculateRemainingTime = (order) => {
+    if (order.status !== 'delivered') return null;
+    
+    const deliveryDate = new Date(order.createdAt);
+    const returnDeadline = new Date(deliveryDate.getTime() + (24 * 60 * 60 * 1000)); // 24 hours later
+    const currentDate = new Date();
+    const timeDifference = returnDeadline.getTime() - currentDate.getTime();
+    
+    if (timeDifference <= 0) return null;
+    
+    const hours = Math.floor(timeDifference / (1000 * 60 * 60));
+    const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+    
+    return { hours, minutes, seconds, total: timeDifference };
+  };
+
+  // Update countdown timers every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (orders.length > 0) {
+        const newCountdowns = {};
+        orders.forEach(order => {
+          if (order.status === 'delivered') {
+            const remaining = calculateRemainingTime(order);
+            if (remaining && remaining.total > 0) {
+              newCountdowns[order._id] = remaining;
+            }
+          }
+        });
+        setCountdowns(newCountdowns);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [orders]);
 
   const handleReturnProduct = async (orderId) => {
     try {
@@ -627,6 +724,118 @@ function Profile() {
       toast.error('Failed to submit return request');
     }
   }
+
+  // Check if feedback period is active (after 24 hours of delivery)
+  const isFeedbackAvailable = (order) => {
+    if (order.status !== 'delivered') return false;
+    
+    const deliveryDate = new Date(order.createdAt);
+    const currentDate = new Date();
+    const timeDifference = currentDate.getTime() - deliveryDate.getTime();
+    const hoursDifference = timeDifference / (1000 * 3600);
+    
+    return hoursDifference > 24;
+  };
+
+  // Check if all products in an order have feedback completed
+  const areAllFeedbacksCompleted = (order) => {
+    if (!order.products || order.products.length === 0) return false;
+    
+    return order.products.every(product => 
+      productFeedbackStatus[product._id]?.feedbackExists === true
+    );
+  };
+
+  // Check if any product in an order has feedback completed
+  const hasAnyFeedbackCompleted = (order) => {
+    if (!order.products || order.products.length === 0) return false;
+    
+    return order.products.some(product => 
+      productFeedbackStatus[product._id]?.feedbackExists === true
+    );
+  };
+
+  // Handle feedback submission
+  const handleSubmitFeedback = async () => {
+    // console.log('=== FRONTEND FEEDBACK SUBMISSION ===');
+    // console.log('selectedProductForFeedback:', selectedProductForFeedback);
+    // console.log('feedbackRating:', feedbackRating);
+    // console.log('feedbackText:', feedbackText);
+    // console.log('BACKEND_URL:', BACKEND_URL);
+    // console.log('token:', token);
+    
+    if (!selectedProductForFeedback || feedbackRating === 0 || !feedbackText.trim()) {
+      toast.error('Please select a product, rating, and provide feedback text');
+      return;
+    }
+
+    setSubmittingFeedback(true);
+    try {
+      const formData = new FormData();
+      formData.append('orderId', feedbackPopupOrderId);
+      formData.append('productId', selectedProductForFeedback._id);
+      formData.append('productName', selectedProductForFeedback.product);
+      formData.append('rating', feedbackRating);
+      formData.append('feedbackText', feedbackText);
+      
+      // Add images if any
+      feedbackImages.forEach((image, index) => {
+        formData.append('feedbackImages', image);
+      });
+
+      // console.log('Making request to:', `${BACKEND_URL}/api/customer/feedback`);
+      // console.log('FormData contents:');
+      
+
+      const res = await fetch(`${BACKEND_URL}/api/customer/feedback`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+
+      // console.log('Response status:', res.status);
+      // console.log('Response ok:', res.ok);
+
+      if (res.ok) {
+        toast.success('Feedback submitted successfully!');
+        // Refresh feedback status
+        await checkFeedbackStatus(orders);
+        setFeedbackPopupOrderId(null);
+        setSelectedProductForFeedback(null);
+        setFeedbackRating(0);
+        setFeedbackText('');
+        setFeedbackImages([]);
+      } else {
+        // Try to get specific error message from backend
+        try {
+          const errorData = await res.json();
+          toast.error(errorData.message || 'Failed to submit the feedback');
+        } catch {
+          toast.error('Failed to submit the feedback');
+        }
+      }
+    } catch (err) {
+      console.error('Feedback submission error:', err);
+      toast.error(`Failed to submit feedback: ${err.message}`);
+    } finally {
+      setSubmittingFeedback(false);
+    }
+  };
+
+  // Handle image upload for feedback
+  const handleFeedbackImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (feedbackImages.length + files.length > 5) {
+      toast.error('Maximum 5 images allowed');
+      return;
+    }
+    setFeedbackImages([...feedbackImages, ...files]);
+  };
+
+  // Remove feedback image
+  const removeFeedbackImage = (index) => {
+    setFeedbackImages(feedbackImages.filter((_, i) => i !== index));
+  };
 
   return (
     <div className="bg-gray-100 min-h-screen flex flex-col">
@@ -927,26 +1136,73 @@ function Profile() {
                           </div>
                         )}
                         {order.status === 'delivered' && (
-                          <div className="flex flex-col sm:flex-row gap-2 mt-4 justify-center">
-                            <button
-                              onClick={() => downloadInvoice(order)}
-                              className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold shadow flex items-center gap-2"
-                            >
-                              <FaDownload className="w-4 h-4" />
-                              Download Invoice
-                            </button>
-                            <button
-                              onClick={() => setReturnPopupOrderId(order._id)}
-                              disabled={!isReturnAvailable(order)}
-                              className={`px-4 py-2 rounded-lg font-semibold shadow flex items-center gap-2 ${
-                                isReturnAvailable(order)
-                                  ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                              }`}
-                            >
-                              <FaUndo className="w-4 h-4" />
-                              Return Product
-                            </button>
+                          <div className="mt-4">
+                            {/* Countdown Timer Display */}
+                            {countdowns[order._id] && (
+                              <div className="mb-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                                <div className="text-center">
+                                  <p className="text-sm font-semibold text-orange-700 mb-1">Return Window Expires In:</p>
+                                  <div className="flex justify-center items-center gap-2 text-lg font-bold text-orange-600">
+                                    <div className="bg-white px-2 py-1 rounded shadow-sm border">
+                                      <span className="text-xl">{String(countdowns[order._id].hours).padStart(2, '0')}</span>
+                                      <div className="text-xs text-gray-500">Hours</div>
+                                    </div>
+                                    <span className="text-orange-400">:</span>
+                                    <div className="bg-white px-2 py-1 rounded shadow-sm border">
+                                      <span className="text-xl">{String(countdowns[order._id].minutes).padStart(2, '0')}</span>
+                                      <div className="text-xs text-gray-500">Minutes</div>
+                                    </div>
+                                    <span className="text-orange-400">:</span>
+                                    <div className="bg-white px-2 py-1 rounded shadow-sm border">
+                                      <span className="text-xl">{String(countdowns[order._id].seconds).padStart(2, '0')}</span>
+                                      <div className="text-xs text-gray-500">Seconds</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            
+                            <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                              <button
+                                onClick={() => downloadInvoice(order)}
+                                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold shadow flex items-center gap-2"
+                              >
+                                <FaDownload className="w-4 h-4" />
+                                Download Invoice
+                              </button>
+                              {/* Show return button if within 24 hours, feedback button/status if after 24 hours */}
+                              {!isFeedbackAvailable(order) ? (
+                                <button
+                                  onClick={() => setReturnPopupOrderId(order._id)}
+                                  disabled={!isReturnAvailable(order)}
+                                  className={`px-4 py-2 rounded-lg font-semibold shadow flex items-center gap-2 ${
+                                    isReturnAvailable(order)
+                                      ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                  }`}
+                                >
+                                  <FaUndo className="w-4 h-4" />
+                                  {isReturnAvailable(order) ? 'Return Product' : 'Return Window Expired'}
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => setFeedbackPopupOrderId(order._id)}
+                                  className={`px-4 py-2 rounded-lg font-semibold shadow flex items-center gap-2 ${
+                                    areAllFeedbacksCompleted(order)
+                                      ? 'bg-green-500 hover:bg-green-600 text-white'
+                                      : 'bg-blue-500 hover:bg-blue-600 text-white'
+                                  }`}
+                                >
+                                  <FaComment className="w-4 h-4" />
+                                  {areAllFeedbacksCompleted(order) 
+                                    ? 'View Feedback' 
+                                    : hasAnyFeedbackCompleted(order) 
+                                      ? 'Complete Feedback' 
+                                      : 'Give Feedback'
+                                  }
+                                </button>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -1552,6 +1808,212 @@ function Profile() {
     </div>
   </div>
 )}
+
+      {/* Feedback Popup */}
+      {feedbackPopupOrderId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-800">Give Feedback</h3>
+              <button
+                onClick={() => {
+                  setFeedbackPopupOrderId(null);
+                  setSelectedProductForFeedback(null);
+                  setFeedbackRating(0);
+                  setFeedbackText('');
+                  setFeedbackImages([]);
+                }}
+                className="text-gray-400 hover:text-red-500 text-2xl"
+              >
+                <FaTimes />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {/* Product Selection */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Products in this order:</label>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {orders.find(order => order._id === feedbackPopupOrderId)?.products.map((product, index) => {
+                    const feedbackExists = productFeedbackStatus[product._id]?.feedbackExists;
+                    const isClickable = !feedbackExists;
+                    
+                    return (
+                      <div
+                        key={index}
+                        onClick={() => isClickable && setSelectedProductForFeedback(product)}
+                        className={`p-3 border rounded-lg transition-all ${
+                          feedbackExists
+                            ? 'border-green-200 bg-green-50 cursor-default'
+                            : selectedProductForFeedback?._id === product._id
+                              ? 'border-blue-500 bg-blue-50 cursor-pointer'
+                              : 'border-gray-200 hover:border-gray-300 cursor-pointer'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {(product.image || (product.images && product.images[0])) ? (
+                              <img 
+                                src={`${BACKEND_URL}${product.image || (product.images && product.images[0])}`} 
+                                alt={product.product} 
+                                className="w-12 h-12 object-contain rounded bg-gray-50 border" 
+                              />
+                            ) : (
+                              <img 
+                                src={`${BACKEND_URL}/uploads/products/default-product-image.JPG`} 
+                                alt="Default" 
+                                className="w-12 h-12 object-contain rounded bg-gray-50 border" 
+                              />
+                            )}
+                            <div>
+                              <p className="font-medium text-gray-800">{product.product}</p>
+                              <p className="text-sm text-gray-600">Quantity: {product.quantity}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {feedbackExists ? (
+                              <div className="flex items-center gap-1 text-green-600">
+                                <FaCheckCircle className="w-4 h-4" />
+                                <span className="text-sm font-medium">Feedback Completed</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1 text-orange-600">
+                                <FaComment className="w-4 h-4" />
+                                <span className="text-sm font-medium">Pending Feedback</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {orders.find(order => order._id === feedbackPopupOrderId)?.products
+                  .filter(product => !productFeedbackStatus[product._id]?.feedbackExists).length === 0 && (
+                  <div className="text-center py-4">
+                    <div className="flex items-center justify-center gap-2 text-green-600">
+                      <FaCheckCircle className="w-5 h-5" />
+                      <span className="font-medium">All products in this order have been reviewed!</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {selectedProductForFeedback && (
+                <>
+                  {productFeedbackStatus[selectedProductForFeedback._id]?.feedbackExists ? (
+                    <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center gap-2 text-green-700 mb-2">
+                        <FaCheckCircle className="w-5 h-5" />
+                        <span className="font-semibold">Feedback Already Submitted</span>
+                      </div>
+                      <p className="text-green-600">
+                        You have already provided feedback for <strong>{selectedProductForFeedback.product}</strong>. 
+                        Please select another product to review.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Rating */}
+                      <div className="mb-6">
+                        <label className="block text-sm font-semibold text-gray-700 mb-3">Rating:</label>
+                        <div className="flex gap-2">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              onClick={() => setFeedbackRating(star)}
+                              className={`text-3xl transition-colors ${
+                                star <= feedbackRating ? 'text-yellow-400' : 'text-gray-300'
+                              } hover:text-yellow-400`}
+                            >
+                              <FaStar />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                  {/* Feedback Text */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Your Feedback:</label>
+                    <textarea
+                      value={feedbackText}
+                      onChange={(e) => setFeedbackText(e.target.value)}
+                      placeholder="Share your experience with this product..."
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      rows="4"
+                    />
+                  </div>
+
+                  {/* Image Upload */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Add Images (Optional - Max 5):
+                    </label>
+                    <div className="space-y-3">
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleFeedbackImageUpload}
+                        className="w-full p-2 border border-gray-300 rounded-lg"
+                      />
+                      
+                      {feedbackImages.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2">
+                          {feedbackImages.map((image, index) => (
+                            <div key={index} className="relative">
+                              <img
+                                src={URL.createObjectURL(image)}
+                                alt={`Feedback ${index + 1}`}
+                                className="w-full h-20 object-cover rounded border"
+                              />
+                              <button
+                                onClick={() => removeFeedbackImage(index)}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                              >
+                                <FaTimes />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                      {/* Submit Button */}
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => {
+                            setFeedbackPopupOrderId(null);
+                            setSelectedProductForFeedback(null);
+                            setFeedbackRating(0);
+                            setFeedbackText('');
+                            setFeedbackImages([]);
+                          }}
+                          className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleSubmitFeedback}
+                          disabled={submittingFeedback || !selectedProductForFeedback || feedbackRating === 0 || !feedbackText.trim()}
+                          className={`flex-1 px-4 py-2 rounded-lg font-semibold transition ${
+                            submittingFeedback || !selectedProductForFeedback || feedbackRating === 0 || !feedbackText.trim()
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                          }`}
+                        >
+                          {submittingFeedback ? 'Submitting...' : 'Submit Feedback'}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

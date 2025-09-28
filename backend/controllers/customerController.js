@@ -5,6 +5,11 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Admin = require('../models/Admin');
 const { ProductReport } = require('../models/Product');
+const Feedback = require('../models/Feedback');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const mongoose = require('mongoose');
 
 exports.signup = async (req, res) => {
   try {
@@ -519,3 +524,274 @@ exports.returnOrder = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
+
+// Configure multer for feedback image uploads
+const feedbackStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(__dirname, '../uploads/feedback');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const feedbackUpload = multer({ 
+  storage: feedbackStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: function (req, file, cb) {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
+});
+
+exports.submitFeedback = async (req, res) => {
+  console.log('submitFeedback function called');
+  console.log('Request body:', req.body);
+  console.log('Request files:', req.files);
+  try {
+    const { orderId, productId, productName, rating, feedbackText } = req.body;
+    const customerId = req.user.id;
+    console.log('Customer ID:', customerId);
+
+    // Validate required fields
+    console.log('Validating required fields...');
+    if (!orderId || !productId || !productName || !rating || !feedbackText) {
+      console.log('Validation failed: Missing required fields');
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+    console.log('Required fields validation passed');
+
+    // Validate rating
+    console.log('Validating rating...');
+    if (rating < 1 || rating > 5) {
+      console.log('Validation failed: Invalid rating');
+      return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+    }
+    console.log('Rating validation passed');
+
+    // Get customer details first to get the customer name
+    console.log('Getting customer details...');
+    const customer = await Customer.findById(customerId);
+    console.log('Customer found:', customer);
+    if (!customer) {
+      console.log('Customer not found');
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    // Check if order exists and belongs to customer (using customer name)
+    console.log('Checking order existence...');
+    console.log('Looking for order with ID:', orderId);
+    console.log('Looking for customer with name:', customer.name);
+    
+    const order = await Order.findOne({ _id: orderId, customer: customer.name });
+    console.log('Order found:', order);
+    if (!order) {
+      console.log('Order not found');
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Check if order is delivered
+    console.log('Checking order status...');
+    console.log('Order status:', order.status);
+    if (order.status !== 'delivered') {
+      console.log('Order not delivered');
+      return res.status(400).json({ message: 'Can only provide feedback for delivered orders' });
+    }
+
+    // Check if feedback period is active (after 24 hours) - TEMPORARILY DISABLED FOR TESTING
+    console.log('Checking feedback period...');
+    const deliveryTime = new Date(order.createdAt); // Using createdAt as deliveredAt
+    const currentTime = new Date();
+    const timeDifference = currentTime - deliveryTime;
+    const hoursDifference = timeDifference / (1000 * 60 * 60);
+    console.log('Hours since delivery:', hoursDifference);
+
+    // TEMPORARILY DISABLED: Allow feedback submission regardless of time for testing
+    // if (hoursDifference <= 1) {
+    //   console.log('Feedback period not active yet');
+    //   return res.status(400).json({ message: 'Feedback can only be submitted after 1 hour of delivery' });
+    // }
+
+    // Check if feedback already exists for this customer and product
+    console.log('Checking for existing feedback...');
+    const existingFeedback = await Feedback.findOne({ 
+      customer: customerId, 
+      product: productId 
+    });
+    console.log('Existing feedback:', existingFeedback);
+    
+    if (existingFeedback) {
+      console.log('Feedback already exists');
+      return res.status(400).json({ message: 'Feedback already submitted for this product' });
+    }
+
+    // Customer details already retrieved above
+
+    // Process uploaded images
+    console.log('Processing uploaded images...');
+    const imageUrls = [];
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        imageUrls.push(`/uploads/feedback/${file.filename}`);
+      });
+    }
+    console.log('Image URLs:', imageUrls);
+
+    // Validate ObjectIds
+    console.log('Validating ObjectIds...');
+    if (!mongoose.Types.ObjectId.isValid(customerId)) {
+      console.log('Invalid customer ID');
+      return res.status(400).json({ message: 'Invalid customer ID' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      console.log('Invalid order ID');
+      return res.status(400).json({ message: 'Invalid order ID' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      console.log('Invalid product ID');
+      return res.status(400).json({ message: 'Invalid product ID' });
+    }
+
+    // Create feedback
+    console.log('Creating feedback...');
+    const feedbackData = {
+      customer: customerId,
+      customerName: customer.name,
+      order: orderId,
+      product: productId,
+      productName: productName,
+      rating: parseInt(rating),
+      feedbackText: feedbackText,
+      images: imageUrls
+    };
+    console.log('Feedback data to save:', feedbackData);
+    
+    const feedback = new Feedback(feedbackData);
+
+    console.log('Saving feedback...');
+    await feedback.save();
+    console.log('Feedback saved successfully');
+
+    console.log('Sending success response...');
+    res.status(201).json({ 
+      message: 'Feedback submitted successfully', 
+      feedback: feedback 
+    });
+
+  } catch (err) {
+    console.log('Error in submitFeedback:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+// Get feedback for a specific product
+exports.getProductFeedback = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const feedbackData = await Feedback.find({ product: productId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('customer', 'name')
+      .select('-__v');
+
+    // Map feedbackText to comment for frontend compatibility
+    const feedback = feedbackData.map(item => ({
+      ...item.toObject(),
+      comment: item.feedbackText
+    }));
+
+    const totalFeedback = await Feedback.countDocuments({ product: productId });
+    const totalPages = Math.ceil(totalFeedback / limit);
+
+    // Calculate average rating
+    const ratingStats = await Feedback.aggregate([
+      { $match: { product: new mongoose.Types.ObjectId(productId) } },
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: '$rating' },
+          totalReviews: { $sum: 1 },
+          ratingDistribution: {
+            $push: '$rating'
+          }
+        }
+      }
+    ]);
+
+    const stats = ratingStats.length > 0 ? {
+      averageRating: Math.round(ratingStats[0].averageRating * 10) / 10,
+      totalReviews: ratingStats[0].totalReviews,
+      ratingDistribution: ratingStats[0].ratingDistribution.reduce((acc, rating) => {
+        acc[rating] = (acc[rating] || 0) + 1;
+        return acc;
+      }, {})
+    } : {
+      averageRating: 0,
+      totalReviews: 0,
+      ratingDistribution: {}
+    };
+
+    res.json({
+      feedback,
+      averageRating: stats.averageRating,
+      totalFeedback: totalFeedback,
+      ratingDistribution: stats.ratingDistribution,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalFeedback,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      }
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+// Check if customer has already submitted feedback for a product
+exports.checkFeedbackExists = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const customerId = req.user.id;
+
+    console.log('Checking feedback existence for customer:', customerId, 'product:', productId);
+
+    // Check if feedback already exists for this customer and product
+    const existingFeedback = await Feedback.findOne({ 
+      customer: customerId, 
+      product: productId 
+    });
+
+    console.log('Existing feedback found:', !!existingFeedback);
+
+    res.json({ 
+      feedbackExists: !!existingFeedback,
+      feedback: existingFeedback ? {
+        rating: existingFeedback.rating,
+        feedbackText: existingFeedback.feedbackText,
+        createdAt: existingFeedback.createdAt
+      } : null
+    });
+
+  } catch (err) {
+    console.log('Error in checkFeedbackExists:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+exports.feedbackUpload = feedbackUpload;

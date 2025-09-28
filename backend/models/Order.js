@@ -24,6 +24,7 @@ const orderSchema = new mongoose.Schema({
   paid: { type: Number, default: 0 },
   due: { type: Number, default: 0 },
   cost: { type: Number, default: 0 },
+  deliveredAt: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

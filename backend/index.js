@@ -8,12 +8,18 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 
 app.use(cors({
-    origin: process.env.FRONTEND_URL, // or use your deployed frontend URL
+    origin: true, // Allow all origins temporarily for debugging
     credentials: true
   }));
   
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Request logger for debugging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
 
 const PORT = process.env.PORT;
 
@@ -91,19 +97,36 @@ app.post('/api/admin/orders', auth('admin'), adminController.createOrder);
 // JWT auth middleware
 function auth(role) {
   return (req, res, next) => {
+    console.log(`=== AUTH MIDDLEWARE DEBUG ===`);
+    console.log(`Auth middleware called for role: ${role}, path: ${req.path}`);
+    console.log('All headers:', req.headers);
+    
     const authHeader = req.headers.authorization;
+    console.log('Authorization header:', authHeader);
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('ERROR: No token provided or invalid format');
       return res.status(401).json({ message: 'No token provided.' });
     }
+    
     const token = authHeader.split(' ')[1];
+    console.log('Extracted token:', token);
+    console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
+    
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('Token decoded successfully:', decoded);
+      
       if (role && decoded.role !== role) {
+        console.log(`ERROR: Role mismatch. Expected: ${role}, Got: ${decoded.role}`);
         return res.status(403).json({ message: 'Forbidden.' });
       }
+      
       req.user = decoded;
+      console.log('Auth successful, proceeding to next middleware');
       next();
     } catch (err) {
+      console.log('ERROR: Token verification failed:', err.message);
       return res.status(401).json({ message: 'Invalid token.' });
     }
   };
@@ -127,3 +150,35 @@ app.delete('/api/customer/cart/:productId', auth('customer'), customerController
 
 // Wishlist routes
 app.delete('/api/customer/wishlist/:productId', auth('customer'), customerController.removeFromWishlist);
+
+// Feedback routes
+console.log('Registering feedback routes...');
+app.post('/api/customer/feedback', (req, res, next) => {
+  next();
+}, auth('customer'), customerController.feedbackUpload.array('feedbackImages', 5), customerController.submitFeedback);
+app.get('/api/customer/feedback/:productId', customerController.getProductFeedback);
+app.get('/api/customer/feedback/check/:productId', auth('customer'), customerController.checkFeedbackExists);
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('=== GLOBAL ERROR HANDLER ===');
+  console.error('Error:', err);
+  console.error('Stack:', err.stack);
+  console.error('Request URL:', req.url);
+  console.error('Request Method:', req.method);
+  console.error('Request Headers:', req.headers);
+  
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({ message: 'File too large' });
+  }
+  
+  if (err.message === 'Only image files are allowed!') {
+    return res.status(400).json({ message: 'Only image files are allowed' });
+  }
+  
+  res.status(500).json({ 
+    message: 'Internal server error', 
+    error: err.message,
+    details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
