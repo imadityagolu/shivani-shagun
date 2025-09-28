@@ -72,8 +72,12 @@ const SearchBox = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (suggestions.length > 0) {
-      handleProductSelect(suggestions[0]);
+    if (query.trim()) {
+      // Redirect to AllProducts page with search query
+      setQuery('');
+      setSuggestions([]);
+      setShowDropdown(false);
+      navigate(`/AllProduct?search=${encodeURIComponent(query.trim())}`);
     }
   };
 

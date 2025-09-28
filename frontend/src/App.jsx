@@ -19,15 +19,11 @@ import Login from './Pages/Customer/Login';
 import Signup from './Pages/Customer/Signup';
 import Profile from './Pages/Customer/Profile';
 import ResetPassword from './Pages/Customer/ResetPassword';
-import Saree from './Pages/Sections/Saree';
-import Lehnga from './Pages/Sections/Lehnga';
-import Chunni from './Pages/Sections/Chunni';
 import AllProduct from './Pages/Sections/AllProduct';
 import ProductDetail from './Pages/Sections/ProductDetail';
 import Wishlist from './Pages/Customer/Wishlist';
 import Cart from './Pages/Customer/Cart';
 import Order from './Pages/Customer/Order';
-import Sute from './Pages/Sections/Sute';
 
 const router = createBrowserRouter([
   {
@@ -103,24 +99,8 @@ const router = createBrowserRouter([
         element: <Order/>
       },
       {
-        path: '/Saree',
-        element: <Saree/>
-      },
-      {
-        path: '/Lehnga',
-        element: <Lehnga/>
-      },
-      {
-        path: '/Chunni',
-        element: <Chunni/>
-      },
-      {
         path: '/AllProduct',
         element: <AllProduct/>
-      },
-      {
-        path: '/Sute',
-        element: <Sute/>
       },
       {
         path: '/product/:id',

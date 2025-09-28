@@ -42,10 +42,11 @@ function Header() {
         </Link>
         {/* Centered Categories (Desktop) */}
         <div className="hidden sm:flex flex-1 justify-center gap-3">
-          <Link to='/Saree' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Saree</Link>
-          <Link to='/Lehnga' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Lehnga</Link>
-          <Link to='/Chunni' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Chunni</Link>
-          <Link to='/Sute' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Sute</Link>
+          <Link to='/AllProduct?category=Saree' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Saree</Link>
+          <Link to='/AllProduct?category=Lehnga' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Lehnga</Link>
+          <Link to='/AllProduct?category=Chunni' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Chunni</Link>
+          <Link to='/AllProduct?category=Sute' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Sute</Link>
+          <Link to='/AllProduct?category=Others' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>Others</Link>
           <Link to='/AllProduct' className='border rounded-lg bg-white text-rose-500 py-1.5 px-4 font-semibold shadow hover:bg-rose-100 transition'>All Products</Link>
         </div>
         {/* Login/Profile (Desktop) */}
@@ -90,32 +91,39 @@ function Header() {
               &times;
             </button>
             <Link
-              to='/Saree'
+              to='/AllProduct?category=Saree'
               className='w-full border rounded-lg bg-white text-rose-500 py-2 px-3 text-base font-semibold shadow hover:bg-rose-100 transition text-center'
               onClick={() => setOpen(false)}
             >
               Saree
             </Link>
             <Link
-              to='/Lehnga'
+              to='/AllProduct?category=Lehnga'
               className='w-full border rounded-lg bg-white text-rose-500 py-2 px-3 text-base font-semibold shadow hover:bg-rose-100 transition text-center'
               onClick={() => setOpen(false)}
             >
               Lehnga
             </Link>
             <Link
-              to='/Chunni'
+              to='/AllProduct?category=Chunni'
               className='w-full border rounded-lg bg-white text-rose-500 py-2 px-3 text-base font-semibold shadow hover:bg-rose-100 transition text-center'
               onClick={() => setOpen(false)}
             >
               Chunni
             </Link>
             <Link
-              to='/Sute'
+              to='/AllProduct?category=Sute'
               className='w-full border rounded-lg bg-white text-rose-500 py-2 px-3 text-base font-semibold shadow hover:bg-rose-100 transition text-center'
               onClick={() => setOpen(false)}
             >
               Sute
+            </Link>
+            <Link
+              to='/AllProduct?category=Others'
+              className='w-full border rounded-lg bg-white text-rose-500 py-2 px-3 text-base font-semibold shadow hover:bg-rose-100 transition text-center'
+              onClick={() => setOpen(false)}
+            >
+              Others
             </Link>
             <Link
               to='/AllProduct'
@@ -160,4 +168,4 @@ function Header() {
   );
 }
 
-export default Header; 
+export default Header;

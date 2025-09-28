@@ -16,7 +16,7 @@ function Slideshow() {
     {
       title: "Premium",
       subtitle: "Designer Collection",
-      description: "Experience luxury with our premium designer sarees, lehengas, and suits crafted by skilled artisans.",
+      description: "Experience the luxury with our premium designer sarees, lehengas, suits and many more crafted by skilled artisans.",
       image: banner2,
       bgColor: "from-rose-100 to-pink-200"
     },

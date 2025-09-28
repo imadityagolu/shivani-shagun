@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import Header from '../Header';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Footer from '../Footer';
 import { FaStar } from 'react-icons/fa';
 import { CiShoppingTag } from "react-icons/ci";
 
 function AllProduct() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [ratings, setRatings] = useState({});
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+  const [categoryFilter, setCategoryFilter] = useState(searchParams.get('category') || '');
   const [page, setPage] = useState(1);
   const PRODUCTS_PER_PAGE = 32;
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -32,6 +35,9 @@ function AllProduct() {
     fetchProducts();
   }, []);
 
+  // Get unique categories for filter dropdown
+  const uniqueCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean))).sort();
+
   // Filter and sort products
   let filtered = products.filter(p => {
     const matchesSearch =
@@ -39,7 +45,8 @@ function AllProduct() {
       (p.product && p.product.toLowerCase().includes(search.toLowerCase())) ||
       (p.category && p.category.toLowerCase().includes(search.toLowerCase())) ||
       (p.description && p.description.toLowerCase().includes(search.toLowerCase()));
-    return matchesSearch;
+    const matchesCategory = categoryFilter === '' || p.category === categoryFilter;
+    return matchesSearch && matchesCategory;
   });
   filtered = filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -51,10 +58,39 @@ function AllProduct() {
   const handleNext = () => setPage((p) => Math.min(totalPages, p + 1));
   const handlePage = (n) => setPage(n);
 
+  // Update URL parameters when filters change (but not on initial load)
   useEffect(() => {
-    // Reset to page 1 if search changes or products change
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+    if (categoryFilter) params.set('category', categoryFilter);
+    
+    const newSearch = params.toString();
+    const currentSearch = searchParams.toString();
+    
+    // Only update if there's actually a difference and it's not the initial load
+    if (newSearch !== currentSearch) {
+      setSearchParams(params, { replace: true });
+    }
+  }, [search, categoryFilter]);
+
+  // Listen for URL parameter changes and update filters (only on mount and URL changes)
+  useEffect(() => {
+    const urlSearch = searchParams.get('search') || '';
+    const urlCategory = searchParams.get('category') || '';
+    
+    // Only update state if the URL values are different from current state
+    if (urlSearch !== search) {
+      setSearch(urlSearch);
+    }
+    if (urlCategory !== categoryFilter) {
+      setCategoryFilter(urlCategory);
+    }
+  }, [searchParams.get('search'), searchParams.get('category')]);
+
+  useEffect(() => {
+    // Reset to page 1 if search, category filter changes or products change
     setPage(1);
-  }, [search, products]);
+  }, [search, categoryFilter, products]);
 
   return (
     <>
@@ -62,14 +98,24 @@ function AllProduct() {
       <div className="max-w-7xl mx-auto mt-8 px-4">
         <h2 className="text-2xl font-bold text-rose-500 mb-6 text-center">All Products</h2>
         {/* Filters */}
-        <div className="flex flex-row items-center mb-6 px-2 w-full">
+        <div className="flex flex-col sm:flex-row gap-4 items-center mb-6 px-2 w-full">
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search product..."
-            className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow w-full"
+            className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow w-full sm:flex-1"
           />
+          <select
+            value={categoryFilter}
+            onChange={e => setCategoryFilter(e.target.value)}
+            className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow w-full sm:w-48"
+          >
+            <option value="">All Categories</option>
+            {uniqueCategories.map(category => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
         </div>
         {loading ? (
           <div className="text-center py-8 text-lg">Loading...</div>
@@ -186,4 +232,4 @@ function ProductCardWithRating({ product, BACKEND_URL, avgRating }) {
   );
 }
 
-export default AllProduct; 
+export default AllProduct;
