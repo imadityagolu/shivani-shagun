@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Header from './Header';
 import Slideshow from './Slideshow';
+import SearchBox from '../components/SearchBox';
 import leh1 from '../Images/store/leh-1.mp4';
 import leh2 from '../Images/store/leh-2.mp4';
 import sareeImg from '../Images/store/saree.JPG';
@@ -23,6 +24,9 @@ function Home() {
   return (
     <>
       <Header />
+      <div className="search-section">
+        <SearchBox />
+      </div>
       
       {/* slideshow */}
       <Slideshow />

@@ -76,6 +76,7 @@ app.put('/api/customer/change-password', auth('customer'), customerController.ch
 app.post('/api/products/upload', auth('admin'), productController.uploadProductImage);
 app.post('/api/products', auth('admin'), productController.addProduct);
 app.get('/api/products', productController.getAllProducts);
+app.get('/api/products/search', productController.searchProducts);
 app.get('/api/products/:id', productController.getProductById);
 app.delete('/api/products/:id', auth('admin'), productController.deleteProduct);
 app.patch('/api/products/:id', auth('admin'), productController.updateProduct);

@@ -261,8 +261,38 @@ exports.updateProduct = [
 exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
     res.json(product);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+// Search products by name, description, and category
+exports.searchProducts = async (req, res) => {
+  try {
+    const { query, limit = 10 } = req.query;
+    
+    if (!query || query.trim() === '') {
+      return res.json([]);
+    }
+
+    const searchRegex = new RegExp(query.trim(), 'i'); // Case-insensitive search
+    
+    const products = await Product.find({
+      $or: [
+        { product: { $regex: searchRegex } },
+        { description: { $regex: searchRegex } },
+        { category: { $regex: searchRegex } }
+      ]
+    })
+    .limit(parseInt(limit))
+    .select('_id product description category images mrp rate')
+    .sort({ product: 1 }); // Sort by product name
+
+    res.json(products);
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
