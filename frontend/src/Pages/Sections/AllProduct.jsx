@@ -95,21 +95,25 @@ function AllProduct() {
   return (
     <>
       <Header />
-      <div className="max-w-7xl mx-auto mt-8 px-4">
-        <h2 className="text-2xl font-bold text-rose-500 mb-6 text-center">All Products</h2>
+      <div className="max-w-7xl mx-auto mt-2 sm:mt-3 lg:mt-8 px-2 sm:px-4">
+        <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-rose-500 mb-3 sm:mb-4 lg:mb-6 text-center">
+          {search ? `Result: ${search}` : 
+           categoryFilter ? `Result: ${categoryFilter}` : 
+           'Result: All Products'}
+        </h2>
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 items-center mb-6 px-2 w-full">
+        <div className="flex flex-col sm:flex-row gap-2 lg:gap-4 items-center mb-3 sm:mb-4 lg:mb-6 px-1 sm:px-2 w-full">
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search product..."
-            className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow w-full sm:flex-1"
+            className="px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 text-xs sm:text-sm lg:text-base rounded-md sm:rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow w-full sm:flex-1"
           />
           <select
             value={categoryFilter}
             onChange={e => setCategoryFilter(e.target.value)}
-            className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow w-full sm:w-48"
+            className="px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 text-xs sm:text-sm lg:text-base rounded-md sm:rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 text-gray-700 shadow w-full sm:w-36 lg:w-48"
           >
             <option value="">All Categories</option>
             {uniqueCategories.map(category => (
